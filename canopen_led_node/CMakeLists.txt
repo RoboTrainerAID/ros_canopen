@@ -5,7 +5,7 @@ project(canopen_led_node)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  #canopen_401
+  canopen_motor_node
   canopen_chain_node
 )
 

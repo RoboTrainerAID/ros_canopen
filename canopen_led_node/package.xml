@@ -40,9 +40,7 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>canopen_401</build_depend>
   <build_depend>canopen_chain_node</build_depend>
-  <run_depend>canopen_401</run_depend>
   <run_depend>canopen_chain_node</run_depend>
 
 
