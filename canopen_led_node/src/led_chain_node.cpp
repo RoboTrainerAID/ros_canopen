@@ -29,8 +29,8 @@ private:
 };
 
 class LedChain : public RosChain{
-  ClassAllocator<canopen::LedBase> led_allocator_;
-  boost::shared_ptr< LayerGroupNoDiag<LedBase> > leds_;
+  ClassAllocator<canopen::IoBase> led_allocator_;
+  boost::shared_ptr< LayerGroupNoDiag<IoBase> > leds_;
   // boost::shared_ptr<LedLayer> led_layer_;
 
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger)
@@ -39,13 +39,13 @@ class LedChain : public RosChain{
       std::string &channel = name;
         //if(params.hasMember("channel")) joint.assign(params["channel"]);
 
-        std::string alloc_name = "canopen::LedBase::Allocator";
+        std::string alloc_name = "canopen::IO401::Allocator";
         if(params.hasMember("led_allocator")) alloc_name.assign(params["led_allocator"]);
 
         XmlRpcSettings settings;
         if(params.hasMember("led_layer")) settings = params["led_layer"];
 
-        boost::shared_ptr<LedBase> led;
+        boost::shared_ptr<IoBase> led;
 
         try{
             led = led_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
@@ -69,20 +69,22 @@ class LedChain : public RosChain{
 
 
 public:
-    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), led_allocator_("led", "canopen::LedBase::Allocator"){}
+    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), led_allocator_("canopen_401", "canopen::IoBase::Allocator"){}
 
     virtual bool setup() {
+        ROS_INFO("resetting layers");
         //led_layer_.reset( new LedLayer());
-        leds_.reset( new LayerGroupNoDiag<LedBase>("Led Layer"));
+        leds_.reset( new LayerGroupNoDiag<IoBase>("Led Layer"));
 
 
         if(RosChain::setup()){
-            //add(led_layer_);
+            ROS_INFO("adding");
+            //add(led_layer_);      
             add(leds_);
 
             return true;
         }
-
+        ROS_ERROR_STREAM("Failed RosChain setup");
         return false;
     }
 
@@ -98,8 +100,9 @@ int main(int argc, char** argv){
   ros::NodeHandle nh;
   ros::NodeHandle nh_priv("~");
 
+  ROS_INFO("init chain");
   LedChain chain(nh, nh_priv);
-
+  ROS_INFO("setting up chain");
   if(!chain.setup()){
       return -1;
   }

@@ -13,7 +13,7 @@ using namespace canopen;
 
 
 HandleLayer::HandleLayer(
-        const std::string &name, const boost::shared_ptr<LedBase> & base, const boost::shared_ptr<ObjectStorage> storage,
+        const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<ObjectStorage> storage,
         XmlRpc::XmlRpcValue & options)
 : Layer(name + " Handle"), base_(base), variables_(storage) {
 

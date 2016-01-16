@@ -5,8 +5,8 @@ project(canopen_led_node)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  canopen_motor_node
   canopen_chain_node
+  canopen_401
 )
 
 ## System dependencies are found with CMake's conventions
@@ -128,7 +128,7 @@ include_directories(
 # add_dependencies(can_led_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
- add_executable(can_led_node
+ add_executable(canopen_led_node
    src/canopen_led_layer.cpp
    src/led_chain_node.cpp
  )
@@ -138,7 +138,7 @@ include_directories(
 # add_dependencies(can_led_node_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(can_led_node
+target_link_libraries(canopen_led_node
   ${catkin_LIBRARIES}
 ) 
 
@@ -157,11 +157,11 @@ target_link_libraries(can_led_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS can_led_node can_led_node_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+ install(TARGETS canopen_led_node
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

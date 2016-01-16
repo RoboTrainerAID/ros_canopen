@@ -6,6 +6,7 @@
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <canopen_master/canopen.h>
+#include <canopen_401/base.h>
 
 class ObjectVariables {
     const boost::shared_ptr<canopen::ObjectStorage> storage_;
@@ -61,25 +62,12 @@ template<> inline double* ObjectVariables::func<canopen::ObjectDict::DEFTYPE_DOM
 namespace canopen
 {
 
-class LedBase : public canopen::Layer {
-protected:
-    LedBase(const std::string &name) : Layer(name) {}
-public:
-    
-
-    class Allocator {
-    public:
-        virtual boost::shared_ptr<LedBase> allocate(const std::string &name, boost::shared_ptr<ObjectStorage> storage, const canopen::Settings &settings) = 0;
-        virtual ~Allocator() {}
-    };
-};
-
 class HandleLayer: public canopen::Layer{    
   
-    boost::shared_ptr<canopen::LedBase> base_;
+    boost::shared_ptr<canopen::IoBase> base_;
     ObjectVariables variables_;
 public:
-    HandleLayer(const std::string &name, const boost::shared_ptr<LedBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
+    HandleLayer(const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
 
    /*
    
