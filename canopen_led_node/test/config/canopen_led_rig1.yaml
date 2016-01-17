@@ -15,7 +15,7 @@ defaults: # optional, all defaults can be overwritten per node
   #   monitor_mode: true # read operation mode in every cycle
   ### ROS:
   #publish: ["6411sub1"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
-  publish: ["60C1sub1", "6060!"]
+
 
 nodes:
   led_rig1:

@@ -10,6 +10,20 @@ class IoBase : public canopen::Layer {
 protected:
     IoBase(const std::string &name) : Layer(name) {}
 public:
+    enum OperationMode
+    {
+        No_Mode = 0,
+        Profiled_Position = 1,
+        Velocity = 2,
+        Profiled_Velocity = 3,
+        Profiled_Torque = 4,
+        Reserved = 5,
+        Homing = 6,
+        Interpolated_Position = 7,
+        Cyclic_Synchronous_Position = 8,
+        Cyclic_Synchronous_Velocity = 9,
+        Cyclic_Synchronous_Torque = 10,
+    };
     
     class Allocator {
     public:
