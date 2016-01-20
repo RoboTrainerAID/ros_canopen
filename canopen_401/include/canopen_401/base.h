@@ -25,6 +25,8 @@ public:
         Cyclic_Synchronous_Torque = 10,
     };
     
+    virtual void registerDefaultModes(boost::shared_ptr<ObjectStorage> storage) {}
+    
     class Allocator {
     public:
         virtual boost::shared_ptr<IoBase> allocate(const std::string &name, boost::shared_ptr<ObjectStorage> storage, const canopen::Settings &settings) = 0;
