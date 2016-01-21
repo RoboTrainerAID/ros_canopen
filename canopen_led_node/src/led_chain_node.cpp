@@ -55,6 +55,7 @@ class LedChain : public RosChain{
         catch( const std::exception &e){
             std::string info = boost::diagnostic_information(e);
             ROS_ERROR_STREAM(info);
+	    ROS_ERROR_STREAM(">>>>>>>>> Failed led allocator");
             return false;
         }
 

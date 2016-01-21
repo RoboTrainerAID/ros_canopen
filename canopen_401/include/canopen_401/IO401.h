@@ -13,14 +13,15 @@
 */
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <std_msgs/UInt16.h>
+#include <std_msgs/Int16.h>
+#include <std_msgs/UInt8.h>
 namespace canopen
 {
 
 class IO401 : public IoBase
 {
   protected:
-    void cb(const std_msgs::UInt16 ::ConstPtr& msg);
+    void cb(const std_msgs::UInt8::ConstPtr& msg);
     virtual void handleRead(LayerStatus &status, const LayerState &current_state);
     virtual void handleWrite(LayerStatus &status, const LayerState &current_state);
     virtual void handleDiag(LayerReport &report);
@@ -40,6 +41,9 @@ public:
         return true;
     }
     
+    void write(const std_msgs::Int16::ConstPtr& msg)    {
+       ROS_INFO("msg: %d", msg->data);
+    }
    
     
     IO401(const std::string &name, boost::shared_ptr<ObjectStorage> storage, const canopen::Settings &settings)
@@ -54,23 +58,31 @@ public:
         */
       ros::NodeHandle n;
       sub_ = n.subscribe("Mode", 1, &IO401::cb, this);
-      storage->entry(supported_drive_modes_, 0x6040);
+     // write_ = n.subscribe("Mode", 1, &IO401::write, this);
+      
+      storage->entry(supported_drive_modes_, 0x6200, 0x01);
+     
+      
+      
+      
+      
       
       
       
     }
-    
-    
+        
     class Allocator : public IoBase::Allocator{
     public:
         virtual boost::shared_ptr<IoBase> allocate(const std::string &name, boost::shared_ptr<ObjectStorage> storage, const canopen::Settings &settings);
+	
+      
     };
    
 private:
   
-    ros::Subscriber sub_;
-    int16_t value_;
-    canopen::ObjectStorage::Entry<uint16_t>  supported_drive_modes_;
+    ros::Subscriber sub_,write_;
+    uint8_t value_;
+    canopen::ObjectStorage::Entry<uint8_t>  supported_drive_modes_;
     
  /*
     canopen::ObjectStorage::Entry<uint16_t>  status_word_entry_;
