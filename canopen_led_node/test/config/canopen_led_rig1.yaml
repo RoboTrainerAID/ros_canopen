@@ -15,11 +15,12 @@ defaults: # optional, all defaults can be overwritten per node
   #   switching_state: 5 # (Operation_Enable), state for mode switching
   #   monitor_mode: true # read operation mode in every cycle
   ### ROS:
-  #publish: ["1000"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
+  # Publish -> Global LED Array Enable: rw: default 1 && Global Brightness: rw: default 0
+  publish: ["2006", "2007"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
 
 
 nodes:
-  led_rig1:
+  led_control:
     ### node settings
     id: 2 # node id
     # name: must be set for array-styled format, defaults to entry name
