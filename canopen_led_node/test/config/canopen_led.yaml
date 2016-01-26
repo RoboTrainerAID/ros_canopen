@@ -16,13 +16,22 @@ defaults: # optional, all defaults can be overwritten per node
   #   monitor_mode: true # read operation mode in every cycle
   ### ROS:
   # Publish -> Global LED Array Enable: rw: default 1 && Global Brightness: rw: default 0
-  publish: ["2006", "2007"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
+  #publish: ["2007"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
 
 
 nodes:
-  led_control:
+  led_alpha:
     ### node settings
     id: 2 # node id
     # name: must be set for array-styled format, defaults to entry name
     # joint: <name> # set motor joint name
+    ### EDS file
+    eds_file: "test/config/led.eds" # path to EDS/DCF file
+    ### LED Channels
+    leds: 20 # number of leds (multiplied by 3 for RGB)
+    ### Banks
+    banks: 4 # number of banks
+    bank_size: 15 # size of one bank
+    ### Groups 
+    groups: 2 # groups
     ### defaults will be merged recursively (only structs), node settings have precedence

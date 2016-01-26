@@ -5,7 +5,9 @@
   <description>The canopen_401 package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
-  <maintainer email="ugcxt@student.kit.edu">Lennart Gilbert</maintainer>
+  <maintainer email="lenanrt.gilbert@student.kit.edu">Lennart Gilbert</maintainer>
+  <author email="lenanrt.gilbert@student.kit.edu">Lennart Gilbert</author>
+  <author email="jan.meurer@student.kit.edu">Jan Meurer</author>
 
   <license>LGPLv3</license>
 
