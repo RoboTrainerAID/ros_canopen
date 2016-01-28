@@ -29,7 +29,9 @@ namespace canopen {
 
 class IO401: public IoBase {
 protected:
-	void cb(const std_msgs::UInt8::ConstPtr& msg);
+	void cb(const std_msgs::UInt16::ConstPtr& msg);
+	void write(const std_msgs::UInt8::ConstPtr& msg);
+	
 	virtual void handleRead(LayerStatus &status,
 			const LayerState &current_state);
 	virtual void handleWrite(LayerStatus &status,
@@ -50,9 +52,7 @@ public:
 		return true;
 	}
 
-	void write(const std_msgs::Int16::ConstPtr& msg) {
-		ROS_INFO("msg: %d", msg->data);
-	}
+
 
 	IO401(const std::string &name, boost::shared_ptr<ObjectStorage> storage,
 			const canopen::Settings &settings) :
@@ -61,8 +61,14 @@ public:
 	{
 
 		ros::NodeHandle n;
-		sub_ = n.subscribe("Mode", 1, &IO401::cb, this);
-		// write_ = n.subscribe("Mode", 1, &IO401::write, this);
+		sub_ = n.subscribe("global_brightness", 1, &IO401::cb, this);
+		write_ = n.subscribe("writeDigitalOut8", 1, &IO401::write, this);
+		
+		if (settings.get_optional<bool>("use_401", false)) {
+		    //start 401 subscriber
+		  
+		}
+		
 
 		// Standard 401 Objects
 		/*
@@ -142,9 +148,12 @@ public:
 		// Read Inputs 16 Bit
 		storage->entry(supported_drive_modes_, 0x6100, 0x00); // ro: Number of Input 16 bit: default=1
 		storage->entry(supported_drive_modes_, 0x6100, 0x01); // ro: Read Inputs 0x1 to 0x10: default=0
+		*/
 		// Write Outputs 8 Bit
-		storage->entry(supported_drive_modes_, 0x6200, 0x00); // ro: Number of Output 8 Bit: default=1
-		storage->entry(supported_drive_modes_, 0x6200, 0x01); // rw: Write Outputs 0x1 to 0x8
+		//storage->entry(supported_drive_modes_, 0x6200, 0x00); // ro: Number of Output 8 Bit: default=1
+		storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
+		
+		/*
 		// Read Analogue Input 16 Bit
 		storage->entry(supported_drive_modes_, 0x6401, 0x00); // ro: Number of Analogue Input 16 Bit
 		storage->entry(supported_drive_modes_, 0x6401, 0x01); // ro: Analogue Input 1
@@ -155,6 +164,12 @@ public:
 		storage->entry(supported_drive_modes_, 0x2000); // rw: Node ID: default=2
 		storage->entry(supported_drive_modes_, 0x2001); // rw: CAN Bitrate (kbit): default=500
 		*/
+		//storage->entry(supported_drive_modes_uint_16, 0x2006); // rw: enable
+		storage->entry(global_brightness_, 0x2007); // rw: global brightness 
+		//storage->entry(group_brightness_, 0x2200); // rw: group brightness 
+		
+		
+		
 	}
 
 	class Allocator: public IoBase::Allocator {
@@ -168,12 +183,12 @@ public:
 private:
 
 	ros::Subscriber sub_, write_;
-	uint8_t value_;
+	
 
-	canopen::ObjectStorage::Entry<uint8_t> supported_drive_modes_uint_8;
+	canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_;
 	canopen::ObjectStorage::Entry<int8_t> supported_drive_modes_int_8;
-	canopen::ObjectStorage::Entry<uint16_t> supported_drive_modes_uint_16;
-	canopen::ObjectStorage::Entry<int16_t> supported_drive_modes_int_16;
+	canopen::ObjectStorage::Entry<uint16_t> supported_drive_modes_uint_16, global_brightness_;
+	canopen::ObjectStorage::Entry<int16_t> group_brightness_;
 	canopen::ObjectStorage::Entry<uint32_t> supported_drive_modes_uint_32;
 	canopen::ObjectStorage::Entry<int32_t> supported_drive_modes_int_32;
 

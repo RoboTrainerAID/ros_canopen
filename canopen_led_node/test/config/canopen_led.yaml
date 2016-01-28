@@ -27,7 +27,9 @@ nodes:
     # joint: <name> # set motor joint name
     ### EDS file
     eds_file: "test/config/led.eds" # path to EDS/DCF file
+    #eds_file: "test/config/Led.dcf" 
     ### LED Channels
+    use_401: false
     leds: 20 # number of leds (multiplied by 3 for RGB)
     ### Banks
     banks: 4 # number of banks

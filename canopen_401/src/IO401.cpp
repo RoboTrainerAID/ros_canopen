@@ -3,12 +3,17 @@
 namespace canopen
 {
   
-  void IO401::cb(const std_msgs::UInt8::ConstPtr& msg)    {
+  void IO401::cb(const std_msgs::UInt16::ConstPtr& msg)    {
     ROS_INFO("msg: %d", msg->data);
-     value_ = msg->data;
-     set(supported_drive_modes_, value_);   
+     uint16_t value_ = msg->data;
+     set(global_brightness_, value_);   
   }
 
+  void IO401::write(const std_msgs::UInt8::ConstPtr& msg) {
+    ROS_INFO("msg: %d", msg->data);
+    uint8_t value_ = msg->data;
+    set(writeDigitalOut8_, value_);   
+  }
 
 void IO401::handleRead(LayerStatus &status, const LayerState &current_state){
     
