@@ -66,6 +66,9 @@ class HandleLayer: public canopen::Layer{
   
     boost::shared_ptr<canopen::IoBase> base_;
     ObjectVariables variables_;
+    
+    uint16_t leds_, banks_, bank_size_, groups_; 
+    
 public:
     HandleLayer(const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
 
@@ -90,8 +93,20 @@ class LedLayer : public canopen::LayerGroupNoDiag<HandleLayer>{
     ros::NodeHandle nh_;
 
 
+    typedef boost::unordered_map< std::string, boost::shared_ptr<HandleLayer> > HandleMap;
+    HandleMap handles_;
+    
+    
 public:
+    void add(const std::string &name, boost::shared_ptr<HandleLayer> handle); 
     LedLayer(ros::NodeHandle nh);
+    
+    
+   
+
+   
+    //TODO define storage entries
+    
     
 };
 }

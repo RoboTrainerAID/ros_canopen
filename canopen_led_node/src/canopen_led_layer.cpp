@@ -17,14 +17,25 @@ HandleLayer::HandleLayer(
         XmlRpc::XmlRpcValue & options)
 : Layer(name + " Handle"), base_(base), variables_(storage) {
 
+    //number of leds (multiplied by 3 for RGB)
+    if(options.hasMember("leds")) leds_ = (const uint16_t) options["leds"];
+    if(options.hasMember("banks")) banks_ = (const uint16_t) options["banks"];
+    if(options.hasMember("bank_size")) bank_size_ = (const uint16_t) options["bank_size"];
+    if(options.hasMember("groups")) groups_ = (const uint16_t) options["groups"];
+    
+    //TODO setup storage entries
 
-   //if(options.hasMember("pos_to_device")) p2d = (const std::string&) options["pos_to_device"];
+}
 
-
+void LedLayer::add(const std::string &name, boost::shared_ptr<HandleLayer> handle){
+    LayerGroupNoDiag::add(handle);
+    handles_.insert(std::make_pair(name, handle));
 }
 
 
 LedLayer::LedLayer(ros::NodeHandle nh) : LayerGroupNoDiag<HandleLayer>("LedLayer"), nh_(nh)
 {
-
+  //LedLayer is created before the ObjectStorage is available,
+  //TODO setup callbacks
+  
 }

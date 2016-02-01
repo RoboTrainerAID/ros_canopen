@@ -29,9 +29,9 @@ private:
 };
 
 class LedChain : public RosChain{
-  ClassAllocator<canopen::IoBase> led_allocator_;
-  boost::shared_ptr< LayerGroupNoDiag<IoBase> > leds_;
-  // boost::shared_ptr<LedLayer> led_layer_;
+  ClassAllocator<canopen::IoBase> io_base_allocator_;
+  boost::shared_ptr< LayerGroupNoDiag<IoBase> > io_bases_;
+  boost::shared_ptr<LedLayer> led_layer_;
 
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger)
     {
@@ -47,10 +47,10 @@ class LedChain : public RosChain{
         XmlRpcSettings settings;
         if(params.hasMember("led_layer")) settings = params["led_layer"];
 
-        boost::shared_ptr<IoBase> led;
+	boost::shared_ptr<IoBase> io_base;
 
         try{
-            led = led_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
+            io_base = io_base_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
         }
         catch( const std::exception &e){
             std::string info = boost::diagnostic_information(e);
@@ -59,12 +59,15 @@ class LedChain : public RosChain{
             return false;
         }
 
-        if(!led){
+        if(!io_base){
             ROS_ERROR_STREAM("Could not allocate led.");
             return false;
         }
-        leds_->add(led);
-        logger->add(led);
+        io_bases_->add(io_base);
+	
+	boost::shared_ptr<HandleLayer> handle( new HandleLayer(name, io_base, node->getStorage(), params));
+        led_layer_->add(joint, handle);
+        logger->add(handle);
 
         return true;
     }
@@ -75,13 +78,13 @@ public:
 
     virtual bool setup() {
         ROS_INFO("resetting layers");
-        //led_layer_.reset( new LedLayer());
+        led_layer_.reset( new LedLayer());
         leds_.reset( new LayerGroupNoDiag<IoBase>("Led Layer"));
 
 
         if(RosChain::setup()){
             ROS_INFO("adding");
-            //add(led_layer_);      
+            add(led_layer_);      
             add(leds_);
 
             return true;
