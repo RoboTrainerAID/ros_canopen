@@ -65,8 +65,8 @@ class LedChain : public RosChain{
         }
         io_bases_->add(io_base);
 	
-	boost::shared_ptr<HandleLayer> handle( new HandleLayer(name, io_base, node->getStorage(), params));
-        led_layer_->add(joint, handle);
+	boost::shared_ptr<LedHandle> handle( new LedHandle(name, io_base, node->getStorage(), params));
+        led_layer_->add(name, handle);
         logger->add(handle);
 
         return true;
@@ -74,18 +74,18 @@ class LedChain : public RosChain{
 
 
 public:
-    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), led_allocator_("canopen_401", "canopen::IoBase::Allocator"){}
+    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), io_base_allocator_("canopen_401", "canopen::IoBase::Allocator"){}
 
     virtual bool setup() {
         ROS_INFO("resetting layers");
-        led_layer_.reset( new LedLayer());
-        leds_.reset( new LayerGroupNoDiag<IoBase>("Led Layer"));
+        led_layer_.reset( new LedLayer(nh_));
+        io_bases_.reset( new LayerGroupNoDiag<IoBase>("Led Layer"));
 
 
         if(RosChain::setup()){
             ROS_INFO("adding");
             add(led_layer_);      
-            add(leds_);
+            add(io_bases_);
 
             return true;
         }

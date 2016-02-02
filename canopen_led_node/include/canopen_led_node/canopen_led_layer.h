@@ -62,7 +62,7 @@ template<> inline double* ObjectVariables::func<canopen::ObjectDict::DEFTYPE_DOM
 namespace canopen
 {
 
-class HandleLayer: public canopen::Layer{    
+class LedHandle: public canopen::Layer{    
   
     boost::shared_ptr<canopen::IoBase> base_;
     ObjectVariables variables_;
@@ -70,10 +70,10 @@ class HandleLayer: public canopen::Layer{
     uint16_t leds_, banks_, bank_size_, groups_; 
     
 public:
-    HandleLayer(const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
+    LedHandle(const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
 
    /*
-   
+*/   
 private:
     virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
     virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
@@ -82,23 +82,23 @@ private:
     virtual void handleShutdown(canopen::LayerStatus &status) {  }
     virtual void handleHalt(canopen::LayerStatus &status) { }
     virtual void handleRecover(canopen::LayerStatus &status) { handleRead(status, Layer::Ready); }
-*/
+
 };
 
 
 
-class LedLayer : public canopen::LayerGroupNoDiag<HandleLayer>{
+class LedLayer : public canopen::LayerGroupNoDiag<LedHandle>{
     
 
     ros::NodeHandle nh_;
 
 
-    typedef boost::unordered_map< std::string, boost::shared_ptr<HandleLayer> > HandleMap;
+    typedef boost::unordered_map< std::string, boost::shared_ptr<LedHandle> > HandleMap;
     HandleMap handles_;
     
     
 public:
-    void add(const std::string &name, boost::shared_ptr<HandleLayer> handle); 
+    void add(const std::string &name, boost::shared_ptr<LedHandle> handle); 
     LedLayer(ros::NodeHandle nh);
     
     
