@@ -2,11 +2,25 @@
 #ifndef CANOPEN_LED_NODE_H_
 #define CANOPEN_LED_NODE_H_
 
-#include <ros/ros.h>
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <canopen_master/canopen.h>
 #include <canopen_401/base.h>
+
+
+#include <ros/ros.h>
+#include <ros/package.h>
+#include <std_msgs/Int8.h>
+#include <std_msgs/Int16.h>
+#include <std_msgs/Int32.h>
+#include <std_msgs/Int64.h>
+#include <std_msgs/UInt8.h>
+#include <std_msgs/UInt16.h>
+#include <std_msgs/UInt32.h>
+#include <std_msgs/UInt64.h>
+#include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
+#include <std_msgs/String.h>
 
 class ObjectVariables {
     const boost::shared_ptr<canopen::ObjectStorage> storage_;
@@ -61,20 +75,42 @@ template<> inline double* ObjectVariables::func<canopen::ObjectDict::DEFTYPE_DOM
 
 namespace canopen
 {
-
-class LedHandle: public canopen::Layer{    
   
+
+
+class LedLayer : public canopen::Layer{
+    
+
+    ros::NodeHandle nh_;
     boost::shared_ptr<canopen::IoBase> base_;
     ObjectVariables variables_;
     
     uint16_t leds_, banks_, bank_size_, groups_; 
+    canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_;
+
+
+
+protected: 
+  void write(const std_msgs::UInt8::ConstPtr& msg);
+      
     
 public:
-    LedHandle(const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
+    LedLayer(ros::NodeHandle nh,const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
+    template<typename T> bool set(T & entry, const typename T::type &value) {
+		try {
+			entry.set(value);
+		} catch (...) {
+			return false;
+		}
+		return true;
+	}
 
-   /*
-*/   
-private:
+
+   
+    //TODO define storage entries
+private:    
+   ros::Subscriber write_; 
+
     virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
     virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
     virtual void handleInit(canopen::LayerStatus &status);
@@ -83,30 +119,7 @@ private:
     virtual void handleHalt(canopen::LayerStatus &status) { }
     virtual void handleRecover(canopen::LayerStatus &status) { handleRead(status, Layer::Ready); }
 
-};
-
-
-
-class LedLayer : public canopen::LayerGroupNoDiag<LedHandle>{
-    
-
-    ros::NodeHandle nh_;
-
-
-    typedef boost::unordered_map< std::string, boost::shared_ptr<LedHandle> > HandleMap;
-    HandleMap handles_;
-    
-    
-public:
-    void add(const std::string &name, boost::shared_ptr<LedHandle> handle); 
-    LedLayer(ros::NodeHandle nh);
-    
-    
    
-
-   
-    //TODO define storage entries
-    
     
 };
 }

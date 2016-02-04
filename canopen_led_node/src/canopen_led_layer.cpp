@@ -8,11 +8,17 @@
 */
 using namespace canopen;
 
-
-LedHandle::LedHandle(
+  void LedLayer::write(const std_msgs::UInt8::ConstPtr& msg) {
+    ROS_INFO("msg: %d", msg->data);
+    uint8_t value = msg->data;
+    set(writeDigitalOut8_, value);   
+  }
+  
+  
+LedLayer::LedLayer(ros::NodeHandle nh,
         const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<ObjectStorage> storage,
         XmlRpc::XmlRpcValue & options)
-: Layer(name + " Handle"), base_(base), variables_(storage) {
+: Layer(name + " Handle"), base_(base), variables_(storage), nh_(nh) {
 
     //number of leds (multiplied by 3 for RGB)
     if(options.hasMember("leds")) leds_ = (const int&) options["leds"];
@@ -22,41 +28,21 @@ LedHandle::LedHandle(
     
     //TODO setup storage entries
 
+    // Write Outputs 8 Bit
+    //storage->entry(supported_drive_modes_, 0x6200, 0x00); // ro: Number of Output 8 Bit: default=1
+    storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
+    
+    //TODO setup callbacks
+    write_ = nh.subscribe("writeDigitalOut8", 1, &LedLayer::write, this);
 }
 
-void LedHandle::handleRead(LayerStatus &status, const LayerState &current_state){
+
+void LedLayer::handleRead(LayerStatus &status, const LayerState &current_state){
     
 }
-void LedHandle::handleWrite(LayerStatus &status, const LayerState &current_state){  
+void LedLayer::handleWrite(LayerStatus &status, const LayerState &current_state){  
  
 }
-void LedHandle::handleInit(LayerStatus &status){
+void LedLayer::handleInit(LayerStatus &status){
     
-}
-/*
-void LedHandle::handleDiag(LayerReport &report){
-    
-}
-void LedHandle::handleShutdown(LayerStatus &status){
-    
-}
-void LedHandle::handleHalt(LayerStatus &status){
-    
-}
-void LedHandle::handleRecover(LayerStatus &status){
-   
-}*/
-
-
-void LedLayer::add(const std::string &name, boost::shared_ptr<LedHandle> handle){
-    LayerGroupNoDiag::add(handle);
-    handles_.insert(std::make_pair(name, handle));
-}
-
-
-LedLayer::LedLayer(ros::NodeHandle nh) : LayerGroupNoDiag<LedHandle>("LedLayer"), nh_(nh)
-{
-  //LedLayer is created before the ObjectStorage is available,
-  //TODO setup callbacks
-  
 }

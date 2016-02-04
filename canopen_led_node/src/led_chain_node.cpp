@@ -31,7 +31,7 @@ private:
 class LedChain : public RosChain{
   ClassAllocator<canopen::IoBase> io_base_allocator_;
   boost::shared_ptr< LayerGroupNoDiag<IoBase> > io_bases_;
-  boost::shared_ptr<LedLayer> led_layer_;
+  boost::shared_ptr<LayerGroupNoDiag<LedLayer> > led_layers_;
 
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger)
     {
@@ -65,9 +65,9 @@ class LedChain : public RosChain{
         }
         io_bases_->add(io_base);
 	
-	boost::shared_ptr<LedHandle> handle( new LedHandle(name, io_base, node->getStorage(), params));
-        led_layer_->add(name, handle);
-        logger->add(handle);
+	boost::shared_ptr<LedLayer> layer( new LedLayer(this->nh_,name, io_base, node->getStorage(), params));
+        led_layers_->add(layer);
+        logger->add(layer);
 
         return true;
     }
@@ -78,13 +78,13 @@ public:
 
     virtual bool setup() {
         ROS_INFO("resetting layers");
-        led_layer_.reset( new LedLayer(nh_));
-        io_bases_.reset( new LayerGroupNoDiag<IoBase>("Led Layer"));
+        led_layers_.reset( new LayerGroupNoDiag<LedLayer>("LedLayers"));
+        io_bases_.reset( new LayerGroupNoDiag<IoBase>("IoBases"));
 
 
         if(RosChain::setup()){
             ROS_INFO("adding");
-            add(led_layer_);      
+            add(led_layers_);      
             add(io_bases_);
 
             return true;
