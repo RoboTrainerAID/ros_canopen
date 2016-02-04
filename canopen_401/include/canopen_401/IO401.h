@@ -62,7 +62,7 @@ public:
 
 		ros::NodeHandle n;
 		sub_ = n.subscribe("global_brightness", 1, &IO401::cb, this);
-		write_ = n.subscribe("writeDigitalOut8", 1, &IO401::write, this);
+		//write_ = n.subscribe("writeDigitalOut8", 1, &IO401::write, this);
 		
 		if (settings.get_optional<bool>("use_401", false)) {
 		    //start 401 subscriber

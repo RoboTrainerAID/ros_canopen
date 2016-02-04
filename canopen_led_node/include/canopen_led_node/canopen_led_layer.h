@@ -21,6 +21,7 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
+#include <std_msgs/UInt16MultiArray.h>
 
 class ObjectVariables {
     const boost::shared_ptr<canopen::ObjectStorage> storage_;
@@ -79,23 +80,22 @@ namespace canopen
 
 
 class LedLayer : public canopen::Layer{
-    
+  
+     
 
     ros::NodeHandle nh_;
     boost::shared_ptr<canopen::IoBase> base_;
     ObjectVariables variables_;
     
-    uint16_t leds_, banks_, bank_size_, groups_; 
-    canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_;
-
-
+    uint16_t leds_, banks_, bank_size_, groups_ ;
+    canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_, bank01_;
+    canopen::ObjectStorage::Entry<int16_t> b01_ch01_, b01_ch02_,b01_ch03_;
 
 protected: 
   void write(const std_msgs::UInt8::ConstPtr& msg);
-      
+  void setLed(const std_msgs::UInt16MultiArray::ConstPtr& msg); 
     
 public:
-    LedLayer(ros::NodeHandle nh,const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
     template<typename T> bool set(T & entry, const typename T::type &value) {
 		try {
 			entry.set(value);
@@ -104,12 +104,14 @@ public:
 		}
 		return true;
 	}
+    LedLayer(ros::NodeHandle nh,const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
+   
 
 
    
     //TODO define storage entries
 private:    
-   ros::Subscriber write_; 
+   ros::Subscriber write_, set_led_; 
 
     virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
     virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
