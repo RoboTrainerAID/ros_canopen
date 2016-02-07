@@ -6,6 +6,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <canopen_master/canopen.h>
 #include <canopen_401/base.h>
+#include <canopen_led_node/Led.h>
 
 
 #include <ros/ros.h>
@@ -93,7 +94,8 @@ class LedLayer : public canopen::Layer{
 
 protected: 
   void write(const std_msgs::UInt8::ConstPtr& msg);
-  void setLed(const std_msgs::UInt16MultiArray::ConstPtr& msg); 
+  void setLed(const canopen_led_node::Led::ConstPtr& msg); 
+  void setB1(const std_msgs::UInt16MultiArray::ConstPtr& msg); 
     
 public:
     template<typename T> bool set(T & entry, const typename T::type &value) {
@@ -107,21 +109,24 @@ public:
     LedLayer(ros::NodeHandle nh,const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
    
 
-
-   
+    
+    
     //TODO define storage entries
 private:    
-   ros::Subscriber write_, set_led_; 
-
-    virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
-    virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
-    virtual void handleInit(canopen::LayerStatus &status);
-    virtual void handleDiag(canopen::LayerReport &report) { }
-    virtual void handleShutdown(canopen::LayerStatus &status) {  }
-    virtual void handleHalt(canopen::LayerStatus &status) { }
-    virtual void handleRecover(canopen::LayerStatus &status) { handleRead(status, Layer::Ready); }
-
-   
+  ros::Subscriber write_, set_led_, set_B1_; 
+  
+  std::map<int, canopen::ObjectStorage::Entry<uint8_t> > bank_map;
+  std::map<int, std::vector< canopen::ObjectStorage::Entry<int16_t> > > channel_map;
+  
+  virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
+  virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
+  virtual void handleInit(canopen::LayerStatus &status);
+  virtual void handleDiag(canopen::LayerReport &report) { }
+  virtual void handleShutdown(canopen::LayerStatus &status) {  }
+  virtual void handleHalt(canopen::LayerStatus &status) { }
+  virtual void handleRecover(canopen::LayerStatus &status) { handleRead(status, Layer::Ready); }
+  
+  
     
 };
 }
