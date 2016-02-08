@@ -41,20 +41,24 @@ int main(int argc, char **argv)
     
     if (ros::ok()){
       // Send the message
-      testcom_pub.publish(msg);
+      //testcom_pub.publish(msg);
+      
       setLed_pub.publish(led_msg);
       loop_rate.sleep();
-      
+     
       led_msg.led = 1;
       setLed_pub.publish(led_msg);
       loop_rate.sleep();
-      
+   
       led_msg.group = 0;
       led_msg.bank = 1;
       setLed_pub.publish(led_msg);
       loop_rate.sleep();
-      
+     
       led_msg.led = 0;
+      for (int i = 3; i < 15; i++) {
+	led_msg.data.push_back(data[i%3]);
+      } 
       setLed_pub.publish(led_msg);
       loop_rate.sleep();
       

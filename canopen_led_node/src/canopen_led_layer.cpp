@@ -31,13 +31,20 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
     //each channel own value OR one rgb value for bank
     //bank_map[bank].get() == data_length
     if(bank_size_ == data_length) {
-      for (int i = 0; i < data_length; i++) {
+      for (int i = 1; i <= bank_size_; i++) {
 	channel_map[bank][i].set(msg->data[i]);
       }
     } else if (data_length == 3) {
-      for (int i = 0; i < data_length; i++) {
+      if(led != 0) {
+	for (int i = led; i <= led + 2; i++) {
+	  channel_map[bank][led].set(msg->data[(i%3)-1]);
+	}
+      } else {
+	for (int i = 1; i <= bank_size_; i++) {
 	channel_map[bank][i].set(msg->data[i%3]);
       }
+      }
+      
     }
   }
   
