@@ -51,14 +51,14 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
   
 }
 
-void LedLayer::setB1(const std_msgs::UInt16MultiArray::ConstPtr& msg) {
+void LedLayer::setB1(const std_msgs::Int16MultiArray::ConstPtr& msg) {
   int dim = msg->layout.dim.size(); 
-  if(dim == 1) { 
+  //if(dim == 1) { 
     set(b01_ch01_, msg->data[0]);   
     set(b01_ch02_, msg->data[1]); 
     set(b01_ch03_, msg->data[2]); 
-  }
-  
+    
+  //}
 }
 
 
@@ -68,10 +68,10 @@ LedLayer::LedLayer(ros::NodeHandle nh,
 : Layer(name + " Handle"), base_(base), variables_(storage), nh_(nh) {
   
   //number of leds (multiplied by 3 for RGB)
-  if(options.hasMember("leds")) leds_ = (const int&) options["leds"];
-  if(options.hasMember("banks")) banks_ = (const int&) options["banks"];
-  if(options.hasMember("bank_size")) bank_size_ = (const int&) options["bank_size"];
-  if(options.hasMember("groups")) groups_ = (const int&) options["groups"];
+  if(options.hasMember("leds")) leds_ = (const int&) options["leds"]; else leds_ = 0;
+  if(options.hasMember("banks")) banks_ = (const int&) options["banks"]; else banks_ = 0;
+  if(options.hasMember("bank_size")) bank_size_ = (const int&) options["bank_size"]; else bank_size_ = 0;
+  if(options.hasMember("groups")) groups_ = (const int&) options["groups"]; else groups_ = 0;
   
   //TODO setup storage entries
   
@@ -80,6 +80,7 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
   
   //setup banks and channels
+  
   
   for (int i = 1; i <= banks_; i++) {
     //TODO test if working i > 1
@@ -111,4 +112,14 @@ void LedLayer::handleWrite(LayerStatus &status, const LayerState &current_state)
 }
 void LedLayer::handleInit(LayerStatus &status){
   
+  /*
+  for(int i = 1; i <= groups_; i++) {
+      storage->entry(group_map[i], (0x2200 + i), 0);
+      int group_size = group_map[i].get();
+      channel_map[i].resize(group_size + 1);
+      for (int j = 1; j <= group_size; j++) {
+	storage->entry(channel_map[i][j],(0x2200 + i),j);
+      }
+  }
+*/  
 }
