@@ -5,6 +5,10 @@ int16 group 	#set non zero to address a group
 int16 bank 	#set non zero to address a bank
 int16 led 	#set non zero to address specific led/channel
 uint16[] data 	#value according to group/bank/led config
+# group set, led not set: group brightness
+# bank set, led and group not set: bank brightness
+
+
 #e.g. group = 1, led = 1: first group, first subindex 
 # => 3 values for rgb of first channel
 #

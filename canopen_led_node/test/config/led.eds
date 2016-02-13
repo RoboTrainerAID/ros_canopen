@@ -2304,7 +2304,7 @@ PDOMapping=0
 [2202sub1]
 ParameterName=LED Bank Group 2 1
 ObjectType=0x7
-DataType=0x0005
+DataType=0x0006
 AccessType=rw
 DefaultValue=0
 PDOMapping=1
@@ -2312,7 +2312,7 @@ PDOMapping=1
 [2202sub2]
 ParameterName=LED Bank Group 2 2
 ObjectType=0x7
-DataType=0x0005
+DataType=0x0006
 AccessType=rw
 DefaultValue=0
 PDOMapping=1
