@@ -39,20 +39,24 @@ class LedLayer : public canopen::Layer{
     const boost::shared_ptr<ObjectStorage> storage_;
     
     uint16_t leds_, banks_, bank_size_, groups_ ;
-    canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_, writeDigitalOut8_, bankBrightness_,groupBrightness_;
-    canopen::ObjectStorage::Entry<uint16_t> globalBrightness_;
+    
+    canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_, bankBrightness_,groupBrightness_, nodeID_, bitrate_;
+    canopen::ObjectStorage::Entry<uint16_t> globalBrightness_ , channelMultiplexer_;
+    canopen::ObjectStorage::Entry<int16_t> outputValue_;
+     
     
 protected: 
-  void writeDigitalOut8(const std_msgs::UInt8::ConstPtr& msg);
+  void writemultiplexedOut16(const canopen_led_node::Led::ConstPtr& msg);
   void setLed(const canopen_led_node::Led::ConstPtr& msg);
   void setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg); 
   void globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg); 
   //void setGroupBrightness(const std_msgs::Int16::ConstPtr& msg); 
 
-    
-    //TODO define storage entries
 private:    
-  ros::Subscriber writeDigitalOut8_sub_, set_led_sub_, globalBrightness_sub_, globalLedArrayEnable_sub_; 
+  ros::Subscriber set_led_sub_,writemultiplexedOut16_sub_, globalBrightness_sub_, globalLedArrayEnable_sub_; 
+  
+  
+
   
   std::map<int, canopen::ObjectStorage::Entry<uint8_t> > bank_map, group_map;
   std::map<int, canopen::ObjectStorage::Entry<int16_t> > bankBrightness_map, groupBrightness_map;

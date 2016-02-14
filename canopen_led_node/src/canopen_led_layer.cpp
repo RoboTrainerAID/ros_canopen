@@ -8,11 +8,6 @@
  */
 using namespace canopen;
 
-void LedLayer::writeDigitalOut8(const std_msgs::UInt8::ConstPtr& msg) {
-  uint8_t value = msg->data;
-  set(writeDigitalOut8_, value);   
-}
-
 /*
  *    int16 group
  *    int16 bank
@@ -88,6 +83,14 @@ void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
 } 
 
 
+void LedLayer::writemultiplexedOut16(const canopen_led_node::Led::ConstPtr& msg) {
+  int led = msg->led;
+  int data_length = msg->data.size(); 
+  if (data_length == 1) {
+   set(channelMultiplexer_, led);
+   set(outputValue_,msg->data[0]);
+  }
+}  
 
 LedLayer::LedLayer(ros::NodeHandle nh,
 		   const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<ObjectStorage> storage,
@@ -102,10 +105,14 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   
   //TODO setup storage entries
   
-  // Write Outputs 8 Bit
-  storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
+
+  // ManufacturerObjects
+    storage->entry(nodeID_, 0x2000); // rw: Node ID: default=2
+    storage->entry(bitrate_, 0x2001); // rw: CAN Bitrate (kbit): default=500
   storage->entry(globalLedArrayEnable_, 0x2006); // 
   storage->entry(globalBrightness_, 0x2007); // 
+  storage->entry(channelMultiplexer_, 0x2008, 1); // 
+  storage->entry(outputValue_, 0x2008, 2); // 
   storage->entry(bankBrightness_, 0x2100 , 0); // 
   storage->entry(groupBrightness_, 0x2200 , 0); // 
   
@@ -128,11 +135,12 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   }
   
   
+  
   //TODO setup callbacks
-  writeDigitalOut8_sub_ = nh.subscribe("writeDigitalOut8", 1, &LedLayer::writeDigitalOut8, this);
   set_led_sub_ =  nh.subscribe("set_led", 1, &LedLayer::setLed, this);
   globalBrightness_sub_ = nh.subscribe("globalBrightness", 1, &LedLayer::setGlobalBrightness, this);
   globalLedArrayEnable_sub_ = nh.subscribe("globalLedsEnable", 1, &LedLayer::globalLedArrayEnable, this);
+  writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1, &LedLayer::writemultiplexedOut16, this);
 }
 
 
