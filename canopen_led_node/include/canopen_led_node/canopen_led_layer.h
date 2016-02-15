@@ -40,8 +40,8 @@ class LedLayer : public canopen::Layer{
     
     uint16_t leds_, banks_, bank_size_, groups_ ;
     
-    canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_, bankBrightness_,groupBrightness_, nodeID_, bitrate_;
-    canopen::ObjectStorage::Entry<uint16_t> globalBrightness_ , channelMultiplexer_;
+    canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_, bankBrightness_,groupBrightness_, nodeID_;
+    canopen::ObjectStorage::Entry<uint16_t> globalBrightness_ , channelMultiplexer_, bitrate_;
     canopen::ObjectStorage::Entry<int16_t> outputValue_;
      
     
@@ -63,6 +63,7 @@ private:
   
   std::map<int, std::vector< canopen::ObjectStorage::Entry<int16_t> > > led_map;
   std::map<int, std::vector< canopen::ObjectStorage::Entry<uint16_t> > > channel_map;
+  //std::map<int, std::vector< canopen::ObjectStorage::Entry<int16_t> > > channel_map;
   
   virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
   virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);

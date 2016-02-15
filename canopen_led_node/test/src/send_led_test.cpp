@@ -6,6 +6,8 @@
 
 int main(int argc, char **argv)
 {
+  std::string com_ = " ";
+  bool extend = false;
   ros::init(argc, argv, "led_test");
   ros::NodeHandle n;
   ros::Publisher setLed_pub = n.advertise<canopen_led_node::Led>("/set_led", 10);
@@ -23,9 +25,56 @@ int main(int argc, char **argv)
   led_msg.bank = 0;
   led_msg.led = 0;
   led_msg.data.push_back(data[0]);
-   
   
-  if (ros::ok()){
+  // Send the messages 
+  while(ros::ok()) {
+    getline(std::cin, com_);
+    int com = atoi(com_.c_str());
+    if(com == 0) {
+      break;
+    }
+    switch (com) {
+      case 1: 
+	ROS_INFO("Data length 1");
+	ROS_INFO("G1");
+	led_msg.group = 1;
+	setLed_pub.publish(led_msg);
+	break;
+      case 2:
+	ROS_INFO("G2");
+	led_msg.group = 2;
+	setLed_pub.publish(led_msg);
+	break;
+      case 3:
+	ROS_INFO("G2 L1");
+	led_msg.led = 1;
+	setLed_pub.publish(led_msg);
+	break;
+      case 4:
+	ROS_INFO("B1 L1");
+	led_msg.group = 0;
+	led_msg.bank = 1;
+	setLed_pub.publish(led_msg);
+	break;
+      case 5:
+	ROS_INFO("B1");
+	led_msg.led = 0;
+	setLed_pub.publish(led_msg);
+	break;
+      case 6:
+	ROS_INFO("B2");
+	led_msg.bank = 2;
+	setLed_pub.publish(led_msg);
+	break;	
+      case 7:
+	extend = true;
+	break;
+	
+    }
+    loop_rate.sleep();
+  }
+  /*
+  
     // Send the message 
     ROS_INFO("Data length 1");
     ROS_INFO("G1");
@@ -58,7 +107,8 @@ int main(int argc, char **argv)
     led_msg.bank = 2;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
-    
+    */
+  if (ros::ok() && extend){
     ROS_INFO("Data length 3");
     led_msg.data.push_back(data[1]); 
     led_msg.data.push_back(data[2]); 
@@ -111,7 +161,6 @@ int main(int argc, char **argv)
     
     ROS_INFO("done");
   }
-  
   
   return 0;
 }

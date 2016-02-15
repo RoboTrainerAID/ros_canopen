@@ -78,8 +78,11 @@ void LedLayer::setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg) {
 }
 
 void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
-  uint8_t value = msg->data;
-  set(globalLedArrayEnable_, value);  
+  if (msg->data) {
+     set(globalLedArrayEnable_, 1);  
+  } else {
+     set(globalLedArrayEnable_, 0);  
+  } 
 } 
 
 
@@ -104,18 +107,17 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   if(options.hasMember("groups")) groups_ = (const int&) options["groups"]; else groups_ = 0;
   
   //TODO setup storage entries
-  
-
+ 
   // ManufacturerObjects
-    storage->entry(nodeID_, 0x2000); // rw: Node ID: default=2
-    storage->entry(bitrate_, 0x2001); // rw: CAN Bitrate (kbit): default=500
+  storage->entry(nodeID_, 0x2000); // rw: Node ID: default=2
+  storage->entry(bitrate_, 0x2001); // rw: CAN Bitrate (kbit): default=500
   storage->entry(globalLedArrayEnable_, 0x2006); // 
   storage->entry(globalBrightness_, 0x2007); // 
   storage->entry(channelMultiplexer_, 0x2008, 1); // 
   storage->entry(outputValue_, 0x2008, 2); // 
   storage->entry(bankBrightness_, 0x2100 , 0); // 
   storage->entry(groupBrightness_, 0x2200 , 0); // 
-  
+  		
   //setup groups, banks and leds
   for (int i = 1; i <= groups_; i++) {
     storage->entry(group_map[i], (0x2200 + i), 0);
@@ -135,7 +137,6 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   }
   
   
-  
   //TODO setup callbacks
   set_led_sub_ =  nh.subscribe("set_led", 1, &LedLayer::setLed, this);
   globalBrightness_sub_ = nh.subscribe("globalBrightness", 1, &LedLayer::setGlobalBrightness, this);
@@ -152,12 +153,12 @@ void LedLayer::handleWrite(LayerStatus &status, const LayerState &current_state)
 }
 void LedLayer::handleInit(LayerStatus &status){
   
-  /* init channel_map, needs running cannode for group_size*/  
+  /* init channel_map, needs running cannode for group_size */
   for(int i = 1; i <= groups_; i++) {
       int group_size = group_map[i].get();
       channel_map[i].resize(group_size + 1);
       for (int j = 1; j <= group_size; j++) {
 	storage_->entry(channel_map[i][j],(0x2200 + i),j);
       }
-  } 
+  }  
 }

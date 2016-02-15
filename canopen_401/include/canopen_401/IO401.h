@@ -61,14 +61,13 @@ public:
 		ros::NodeHandle n;
 		use_401_ = settings.get_optional<bool>("use_401", false);
 		
-		
 		// Standard 401 Objects
 		storage->entry(DeviceType_, 0x1000); // ro: Device Type
 		storage->entry(ErrorRegister_, 0x1001); // ro: Error Register
 		// Error
 		storage->entry(StandardErrorField_, 0x1003, 0x01); // ro: Standard Error Field
-		// Manufacturer Software Version
-		storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
+		// Manufacturer Software Version TODO
+		//storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
 		storage->entry(emergencyCOBID_, 0x1014); // rw: Emergency COB ID
 		// Identity
 		storage->entry(VendorID_, 0x1018, 0x01); // ro: Vendor ID
@@ -80,7 +79,7 @@ public:
 		storage->entry(COBIDTransmit_, 0x1200, 0x02); // ro: COB ID Server to Client (Transmit SDO)
 		
 		if (use_401_) {
-		  
+		  ROS_INFO("use 401");
 		  // Receive PDO 1 Parameter
 		  storage->entry(RPDO1MaxSub_, 0x1400, 0x00); // ro: Highest SubIndex Supported
 		  storage->entry(rPDO1COBID_, 0x1400, 0x01); // rw: COB ID used by PDO
