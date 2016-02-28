@@ -24,19 +24,16 @@ void IO401::handleDiag(LayerReport &report){
 }
 void IO401::handleInit(LayerStatus &status){
   if (use_401_) {
-    //rpdo_map.resize(4);
-    //rpdo_.resize(4);
     for (int i = 0; i < 4; i++) {
       storage_->entry(rpdo_[i] , 0x1600 + i, 0);
       // Receive PDO i Mapping
       int pdo_entries = rpdo_[i].get();
       rpdo_map[i].resize(pdo_entries + 1);
       for (int j = 1; j <= pdo_entries; j++) {
-	storage_->entry(rpdo_map[i][j] , 0x1600 + i, j); // rw: PDO i Mapping for an application object j
+	storage_->entry(rpdo_map[i][j] , 0x1600 + i, j); 
+	// rw: PDO i Mapping for an application object j
       }
     }
-    //tpdo_map.resize(5);
-    //tpdo_.resize(5);
     for (int i = 0; i < 5; i++) {
       storage_->entry(tpdo_[i], 0x1A00 + i, 0);
       // Transmit PDO i Mapping
@@ -44,7 +41,7 @@ void IO401::handleInit(LayerStatus &status){
       tpdo_map[i].resize(pdo_entries + 1);
       for (int j = 1; j <= pdo_entries; j++) {
 	storage_->entry(tpdo_map[i][j], 0x1A00 + i, j);
-      // rw: PDO i Mapping for a process data variable j
+	// rw: PDO i Mapping for a process data variable j
       }
     }
   }

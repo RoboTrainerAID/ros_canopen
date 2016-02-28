@@ -54,16 +54,20 @@ protected:
 
 private:    
   ros::Subscriber set_led_sub_,writemultiplexedOut16_sub_, globalBrightness_sub_, globalLedArrayEnable_sub_; 
-  
-  
 
-  
+  //Key is the bank/group number. 
+  //bank_map: for each bank, contains the subentry that specifies the number of channels (0x2101sub0 - 0x21FFsub0)
+  //group_map: for each group, contains the subentry that specifies the number of channels (0x2201sub0 - 0x2210sub0)
   std::map<int, canopen::ObjectStorage::Entry<uint8_t> > bank_map, group_map;
+  //bankBrightness_map: for each bank, contains the subentry of 0x2100 for that bank.
+  //groupBrightness_map: for each group, contains the subentry of 0x2200 for that group.
   std::map<int, canopen::ObjectStorage::Entry<int16_t> > bankBrightness_map, groupBrightness_map;
   
+  //for each bank, contains a vector of all the channel-subentries [0x2101 - 0x21FF, 0x01 - 0xFE] 
   std::map<int, std::vector< canopen::ObjectStorage::Entry<int16_t> > > led_map;
+  //for each group, contains a vector of all the channel-subentries [0x2201 - 0x2210, 0x01 - 0xFE]
   std::map<int, std::vector< canopen::ObjectStorage::Entry<uint16_t> > > channel_map;
-  //std::map<int, std::vector< canopen::ObjectStorage::Entry<int16_t> > > channel_map;
+
   
   virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
   virtual void handleWrite(canopen::LayerStatus &status, const LayerState &current_state);
@@ -84,10 +88,7 @@ public:
 		return true;
 	}
     LedLayer(ros::NodeHandle nh,const std::string &name, const boost::shared_ptr<IoBase> & base, const boost::shared_ptr<canopen::ObjectStorage> storage,  XmlRpc::XmlRpcValue & options);
-   
-
-  
-    
+ 
 };
 }
 

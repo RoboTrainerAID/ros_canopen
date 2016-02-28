@@ -38,15 +38,18 @@ int main(int argc, char **argv)
 	ROS_INFO("Data length 1");
 	ROS_INFO("G1");
 	led_msg.group = 1;
+	led_msg.led = 0;
 	setLed_pub.publish(led_msg);
 	break;
       case 2:
 	ROS_INFO("G2");
 	led_msg.group = 2;
+	led_msg.led = 0;
 	setLed_pub.publish(led_msg);
 	break;
       case 3:
 	ROS_INFO("G2 L1");
+	led_msg.group = 2;
 	led_msg.led = 1;
 	setLed_pub.publish(led_msg);
 	break;
@@ -54,16 +57,21 @@ int main(int argc, char **argv)
 	ROS_INFO("B1 L1");
 	led_msg.group = 0;
 	led_msg.bank = 1;
+	led_msg.led = 1;
 	setLed_pub.publish(led_msg);
 	break;
       case 5:
 	ROS_INFO("B1");
+	led_msg.group = 0;
+	led_msg.bank = 1;
 	led_msg.led = 0;
 	setLed_pub.publish(led_msg);
 	break;
       case 6:
 	ROS_INFO("B2");
+	led_msg.group = 0;
 	led_msg.bank = 2;
+	led_msg.led = 0;
 	setLed_pub.publish(led_msg);
 	break;	
       case 7:
@@ -73,41 +81,6 @@ int main(int argc, char **argv)
     }
     loop_rate.sleep();
   }
-  /*
-  
-    // Send the message 
-    ROS_INFO("Data length 1");
-    ROS_INFO("G1");
-    led_msg.group = 1;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    
-    ROS_INFO("G2");
-    led_msg.group = 2;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    
-    ROS_INFO("G2 L1");
-    led_msg.led = 1;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    
-    ROS_INFO("B1 L1");
-    led_msg.group = 0;
-    led_msg.bank = 1;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    
-    ROS_INFO("B1");
-    led_msg.led = 0;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    
-    ROS_INFO("B2");
-    led_msg.bank = 2;
-    setLed_pub.publish(led_msg);
-    loop_rate.sleep();
-    */
   if (ros::ok() && extend){
     ROS_INFO("Data length 3");
     led_msg.data.push_back(data[1]); 

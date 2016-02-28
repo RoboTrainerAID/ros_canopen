@@ -1,11 +1,5 @@
 #include <canopen_led_node/canopen_led_layer.h>
 
-/* motor_node/robot_layer.cpp
- * 
- *  -ledlayer object from config representing ea led-able node
- *  -request dimensions of the ledlayer(amount: channels,banks,groups)
- * 
- */
 using namespace canopen;
 
 /*
@@ -36,7 +30,6 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
       }
     }
   } else if(bank != 0) {
-    //each channel own value OR one rgb value for bank
     if(data_length == bank_size_) {
       //direct mapping
       for (int i = 1; i <= bank_size_; i++) {
@@ -57,18 +50,12 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
 	  led_map[bank][led].set(msg->data[(i-1)%3]);
 	}
       } else {
-	//all leds to same color
-	for (int i = 1; i <= led + 2; i++) {
+	//all leds to same rgb-color
+	for (int i = 1; i <= bank_size_; i++) {
 	  led_map[bank][led].set(msg->data[(i-1)%3]);
 	}
       }
-    }/* else if (data_length >= 3) {
-    if(3 <= data_length ) {
-      for (int i = 1; i <= bank_size_; i++) {
-	led_map[bank][i].set(msg->data[i%3]);
-  }
-  }
-  }*/
+    }
   }
 }
 
@@ -106,7 +93,7 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   if(options.hasMember("bank_size")) bank_size_ = (const int&) options["bank_size"]; else bank_size_ = 0;
   if(options.hasMember("groups")) groups_ = (const int&) options["groups"]; else groups_ = 0;
   
-  //TODO setup storage entries
+  //setup storage entries
  
   // ManufacturerObjects
   storage->entry(nodeID_, 0x2000); // rw: Node ID: default=2
@@ -137,7 +124,7 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   }
   
   
-  //TODO setup callbacks
+  //setup callbacks
   set_led_sub_ =  nh.subscribe("set_led", 1, &LedLayer::setLed, this);
   globalBrightness_sub_ = nh.subscribe("globalBrightness", 1, &LedLayer::setGlobalBrightness, this);
   globalLedArrayEnable_sub_ = nh.subscribe("globalLedsEnable", 1, &LedLayer::globalLedArrayEnable, this);
@@ -153,7 +140,7 @@ void LedLayer::handleWrite(LayerStatus &status, const LayerState &current_state)
 }
 void LedLayer::handleInit(LayerStatus &status){
   
-  /* init channel_map, needs running cannode for group_size */
+  /* init channel_map, needs running cannode to get group_size */
   for(int i = 1; i <= groups_; i++) {
       int group_size = group_map[i].get();
       channel_map[i].resize(group_size + 1);

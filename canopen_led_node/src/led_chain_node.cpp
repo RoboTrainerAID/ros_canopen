@@ -39,7 +39,6 @@ class LedChain : public RosChain{
       std::string &channel = name;
       ROS_INFO("adding node %s", name.c_str());
       
-        //if(params.hasMember("channel")) joint.assign(params["channel"]);
 
         std::string alloc_name = "canopen::IO401::Allocator";
         if(params.hasMember("led_allocator")) alloc_name.assign(params["led_allocator"]);

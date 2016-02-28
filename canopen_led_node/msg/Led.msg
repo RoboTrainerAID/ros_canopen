@@ -1,17 +1,27 @@
-#either group or bank have to be non zero
-#group has priority over bank
-
 int16 group 	#set non zero to address a group
 int16 bank 	#set non zero to address a bank
 int16 led 	#set non zero to address specific led/channel
-uint16[] data 	#value according to group/bank/led config
-# group set, led not set: group brightness
-# bank set, led and group not set: bank brightness
+uint16[] data 	#values according to group/bank/led config
 
+# either group or bank have to be non zero
+# group has priority over bank
 
-#e.g. group = 1, led = 1: first group, first subindex 
-# => 3 values for rgb of first channel
-#
-# group = 0, bank = 2, led = 0: second bank, all subindices
-# => either 3 values to set whole bank to those values
-# or [bank_size] values, to set different values to more than 1 led at a time
+# group_brightness: group set, led not set 
+# bank_brightness: bank set, led and group not set
+
+#modes:
+# group != 0 
+# data[1]:
+# 	led == 0: group_brightness 
+# 	led != 0: set one channel
+# data[group_size]: direct mapping
+
+# bank != 0 
+# data[1]:
+# 	led == 0: bank_brightness 
+# 	led != 0: set one channel
+# data[bank_size]: direct mapping
+
+# data[3]: for 3channel rgb leds
+# 	led == 0: all leds to same rgb-color
+# 	led != 0: set 3 channels starting at led

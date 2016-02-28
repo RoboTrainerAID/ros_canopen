@@ -3,14 +3,6 @@
 
 #include <canopen_401/base.h>
 #include <canopen_master/canopen.h>
-/*
- #include <boost/function.hpp>
- #include <boost/container/flat_map.hpp>
-
- #include <boost/numeric/conversion/cast.hpp>
- #include <limits>
- #include <algorithm>
- */
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <std_msgs/Int8.h>
@@ -66,8 +58,8 @@ public:
 		storage->entry(ErrorRegister_, 0x1001); // ro: Error Register
 		// Error
 		storage->entry(StandardErrorField_, 0x1003, 0x01); // ro: Standard Error Field
-		// Manufacturer Software Version TODO
-		//storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
+		// Manufacturer Software Version
+		storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
 		storage->entry(emergencyCOBID_, 0x1014); // rw: Emergency COB ID
 		// Identity
 		storage->entry(VendorID_, 0x1018, 0x01); // ro: Vendor ID
@@ -78,6 +70,7 @@ public:
 		storage->entry(COBIDReceive_, 0x1200, 0x01); // ro: COB ID Client to Server (Receive SDO)
 		storage->entry(COBIDTransmit_, 0x1200, 0x02); // ro: COB ID Server to Client (Transmit SDO)
 		
+		//following entries only used when the use_401 option is true in the yaml file
 		if (use_401_) {
 		  ROS_INFO("use 401");
 		  // Receive PDO 1 Parameter
@@ -147,6 +140,10 @@ public:
 		  storage->entry(tPDO5SyncStartVal_, 0x1804, 0x06); // rw: SYNC start value
 		  
 		  
+		  /*
+		   * To get actual number of in/outputs from sub0 with the object storage entry,
+		   * move the code to handleInit. Otherwise node and entry won't be available. 
+		   */
 		  
 		  // Read Inputs 16 Bit
 		  //storage->entry(supported_drive_modes_, 0x6100, 0x00); // ro: Number of Input 16 bit: default=1
@@ -185,30 +182,29 @@ private:
 	bool use_401_;
 	ros::Subscriber writeDigitalOut8_sub_, writeAnalogOut16_sub_;
 	
-	canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_, ErrorRegister_,
-	  RPDO1MaxSub_, RPDO2MaxSub_,RPDO3MaxSub_,RPDO4MaxSub_,
+	canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_, ErrorRegister_;
+	canopen::ObjectStorage::Entry<uint16_t> readDigitalIn16_;
+	canopen::ObjectStorage::Entry<int16_t> writeAnalogOut16_;
+	canopen::ObjectStorage::Entry<uint32_t> DeviceType_, StandardErrorField_, emergencyCOBID_, VendorID_,
+	ProductCode_, RevisionNumber_, SerialNumber_, COBIDReceive_, COBIDTransmit_;
+	canopen::ObjectStorage::Entry<std::string> ManufacturerSoftwareVersion_;
+	
+	//RPDO
+	canopen::ObjectStorage::Entry<uint8_t> RPDO1MaxSub_, RPDO2MaxSub_,RPDO3MaxSub_,RPDO4MaxSub_,
 	  rPDO1TxType_, rPDO2TxType_, rPDO3TxType_, rPDO4TxType_,
 	  rPDO1SyncStartVal_, rPDO2SyncStartVal_, rPDO3SyncStartVal_, rPDO4SyncStartVal_;
-	  
+	canopen::ObjectStorage::Entry<uint16_t> rPDO1InhibitT_, rPDO2InhibitT_, rPDO3InhibitT_, rPDO4InhibitT_, 
+	  rPDO1EventTimer_, rPDO2EventTimer_, rPDO3EventTimer_, rPDO4EventTimer_;
+	canopen::ObjectStorage::Entry<uint32_t> rPDO1COBID_, rPDO2COBID_, rPDO3COBID_, rPDO4COBID_;  
+	
+	//TPDO  
 	canopen::ObjectStorage::Entry<uint8_t> TPDO1MaxSub_, TPDO2MaxSub_, TPDO3MaxSub_, TPDO4MaxSub_, TPDO5MaxSub_,
 	  tPDO1TxType_, tPDO2TxType_, tPDO3TxType_, tPDO4TxType_, tPDO5TxType_,
 	  tPDO1SyncStartVal_, tPDO2SyncStartVal_, tPDO3SyncStartVal_, tPDO4SyncStartVal_, tPDO5SyncStartVal_;
-	  
-	canopen::ObjectStorage::Entry<uint16_t> readDigitalIn16_, rPDO1InhibitT_, rPDO2InhibitT_, rPDO3InhibitT_, rPDO4InhibitT_, 
-	rPDO1EventTimer_, rPDO2EventTimer_, rPDO3EventTimer_, rPDO4EventTimer_, 
-	tPDO1InhibitT_, tPDO2InhibitT_, tPDO3InhibitT_, tPDO4InhibitT_, tPDO5InhibitT_,
-	tPDO1EventTimer_, tPDO2EventTimer_, tPDO3EventTimer_, tPDO4EventTimer_, tPDO5EventTimer_;
-	
-	canopen::ObjectStorage::Entry<int16_t> writeAnalogOut16_;
-	
-	canopen::ObjectStorage::Entry<uint32_t> DeviceType_, StandardErrorField_, emergencyCOBID_, VendorID_,
-	ProductCode_, RevisionNumber_, SerialNumber_, COBIDReceive_, COBIDTransmit_,
-	rPDO1COBID_, rPDO2COBID_, rPDO3COBID_, rPDO4COBID_,
-	tPDO1COBID_, tPDO2COBID_, tPDO3COBID_, tPDO4COBID_, tPDO5COBID_;
-	//canopen::ObjectStorage::Entry<int32_t> ;
-	
-	canopen::ObjectStorage::Entry<std::string> ManufacturerSoftwareVersion_;
-	
+	canopen::ObjectStorage::Entry<uint16_t> tPDO1InhibitT_, tPDO2InhibitT_, tPDO3InhibitT_, tPDO4InhibitT_, tPDO5InhibitT_,
+	  tPDO1EventTimer_, tPDO2EventTimer_, tPDO3EventTimer_, tPDO4EventTimer_, tPDO5EventTimer_;
+	canopen::ObjectStorage::Entry<uint32_t> tPDO1COBID_, tPDO2COBID_, tPDO3COBID_, tPDO4COBID_, tPDO5COBID_;
+
 	std::map<int, canopen::ObjectStorage::Entry<uint8_t> > rpdo_, tpdo_;
 	std::map<int, std::vector< canopen::ObjectStorage::Entry<uint32_t> > > rpdo_map, tpdo_map;
 	
