@@ -46,18 +46,25 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
     } else if (data_length == 3) {
       if(led != 0) {
 	//set all 3 channels of one led
-	for (int i = led; i <= led + 2; i++) {
-	  led_map[bank][led].set(msg->data[(i-1)%3]);
+	for (int i = led; i < led + 3; i++) {
+	  led_map[bank][i].set(msg->data[(i-1)%3]);
 	}
       } else {
 	//all leds to same rgb-color
 	for (int i = 1; i <= bank_size_; i++) {
-	  led_map[bank][led].set(msg->data[(i-1)%3]);
+	  led_map[bank][i].set(msg->data[(i-1)%3]);
 	}
       }
     }
   }
 }
+
+
+void LedLayer::selfTest(const std_msgs::Bool::ConstPtr& msg) {
+  if (msg->data) {
+     set(selfTest_, (int8_t) 1);  
+  } 
+} 
 
 void LedLayer::setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg) {
  uint16_t value = msg->data;
@@ -66,9 +73,9 @@ void LedLayer::setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg) {
 
 void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
   if (msg->data) {
-     set(globalLedArrayEnable_, 1);  
+     set(globalLedArrayEnable_, (uint8_t) 1);  
   } else {
-     set(globalLedArrayEnable_, 0);  
+     set(globalLedArrayEnable_, (uint8_t) 0);  
   } 
 } 
 
@@ -102,6 +109,7 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   storage->entry(globalBrightness_, 0x2007); // 
   storage->entry(channelMultiplexer_, 0x2008, 1); // 
   storage->entry(outputValue_, 0x2008, 2); // 
+  storage->entry(selfTest_, 0x200A); // 
   storage->entry(bankBrightness_, 0x2100 , 0); // 
   storage->entry(groupBrightness_, 0x2200 , 0); // 
   		
@@ -125,8 +133,9 @@ LedLayer::LedLayer(ros::NodeHandle nh,
   
   
   //setup callbacks
+  selfTest_sub_ = nh.subscribe("selftest", 1, &LedLayer::selfTest, this);
   set_led_sub_ =  nh.subscribe("set_led", 1, &LedLayer::setLed, this);
-  globalBrightness_sub_ = nh.subscribe("globalBrightness", 1, &LedLayer::setGlobalBrightness, this);
+  globalBrightness_sub_ = nh.subscribe("global_brightness", 1, &LedLayer::setGlobalBrightness, this);
   globalLedArrayEnable_sub_ = nh.subscribe("globalLedsEnable", 1, &LedLayer::globalLedArrayEnable, this);
   writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1, &LedLayer::writemultiplexedOut16, this);
 }

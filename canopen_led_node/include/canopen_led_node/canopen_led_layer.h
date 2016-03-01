@@ -39,7 +39,7 @@ class LedLayer : public canopen::Layer{
     const boost::shared_ptr<ObjectStorage> storage_;
     
     uint16_t leds_, banks_, bank_size_, groups_ ;
-    
+    canopen::ObjectStorage::Entry<int8_t> selfTest_;
     canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_, bankBrightness_,groupBrightness_, nodeID_;
     canopen::ObjectStorage::Entry<uint16_t> globalBrightness_ , channelMultiplexer_, bitrate_;
     canopen::ObjectStorage::Entry<int16_t> outputValue_;
@@ -50,10 +50,10 @@ protected:
   void setLed(const canopen_led_node::Led::ConstPtr& msg);
   void setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg); 
   void globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg); 
-  //void setGroupBrightness(const std_msgs::Int16::ConstPtr& msg); 
+  void selfTest(const std_msgs::Bool::ConstPtr& msg);  
 
 private:    
-  ros::Subscriber set_led_sub_,writemultiplexedOut16_sub_, globalBrightness_sub_, globalLedArrayEnable_sub_; 
+  ros::Subscriber selfTest_sub_, set_led_sub_,writemultiplexedOut16_sub_, globalBrightness_sub_, globalLedArrayEnable_sub_; 
 
   //Key is the bank/group number. 
   //bank_map: for each bank, contains the subentry that specifies the number of channels (0x2101sub0 - 0x21FFsub0)

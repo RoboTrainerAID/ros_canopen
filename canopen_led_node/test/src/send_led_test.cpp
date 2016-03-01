@@ -28,6 +28,7 @@ int main(int argc, char **argv)
   
   // Send the messages 
   while(ros::ok()) {
+    if(extend){break;}
     getline(std::cin, com_);
     int com = atoi(com_.c_str());
     if(com == 0) {
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
     ROS_INFO("Data length 3");
     led_msg.data.push_back(data[1]); 
     led_msg.data.push_back(data[2]); 
-    
+  /*  
     ROS_INFO("G1");
     led_msg.group = 1;
     setLed_pub.publish(led_msg);
@@ -100,23 +101,67 @@ int main(int argc, char **argv)
     led_msg.led = 1;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
-    
-    ROS_INFO("B1 L1");
+    */
+  
+    led_msg.data[0] = 0;
+    led_msg.data[1] = 0;
+    led_msg.data[2] = 50;
+    ROS_INFO("B1 L5");
     led_msg.group = 0;
     led_msg.bank = 1;
+    led_msg.led = 1;
+    setLed_pub.publish(led_msg);
+    loop_rate.sleep();
+  
+    led_msg.data[0] = 50;
+    led_msg.data[1] = 0;
+    led_msg.data[2] = 0;
+    ROS_INFO("B1 L5");
+    led_msg.group = 0;
+    led_msg.bank = 1;
+    led_msg.led = 13;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
     
+    led_msg.data[0] = 0;
+    led_msg.data[1] = 50;
+    led_msg.data[2] = 0;
+    led_msg.group = 0;
+    led_msg.bank = 1;
+    led_msg.led = 13;
+    ROS_INFO("B1 L5");
+    setLed_pub.publish(led_msg);
+    loop_rate.sleep();
+    
+    led_msg.data[0] = 0;
+    led_msg.data[1] = 0;
+    led_msg.data[2] = 50;
+    led_msg.group = 0;
+    led_msg.bank = 1;
+    led_msg.led = 13;
+    ROS_INFO("B1 L5");
+    setLed_pub.publish(led_msg);
+    loop_rate.sleep();
+/**/
+    led_msg.data[0] = 50;
+    led_msg.data[1] = 50;
+    led_msg.data[2] = 50;
     ROS_INFO("B1");
+    led_msg.group = 0;
+    led_msg.bank = 1;
     led_msg.led = 0;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
     
+    led_msg.data[0] = 0;
+    led_msg.data[1] = 50;
+    led_msg.data[2] = 150;
     ROS_INFO("B2");
     led_msg.bank = 2;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
-    
+   
+    /*
     ROS_INFO("Data length banksize");
     for (int i = 3; i < 15; i++) {
       led_msg.data.push_back(data[i%3]);
@@ -130,7 +175,7 @@ int main(int argc, char **argv)
     led_msg.bank = 1;
     setLed_pub.publish(led_msg);
     loop_rate.sleep();
-    
+    */
     
     ROS_INFO("done");
   }

@@ -59,7 +59,7 @@ public:
 		// Error
 		storage->entry(StandardErrorField_, 0x1003, 0x01); // ro: Standard Error Field
 		// Manufacturer Software Version
-		storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
+		//storage->entry(ManufacturerSoftwareVersion_, 0x100A); // ro: Manufacturer Software Version
 		storage->entry(emergencyCOBID_, 0x1014); // rw: Emergency COB ID
 		// Identity
 		storage->entry(VendorID_, 0x1018, 0x01); // ro: Vendor ID
