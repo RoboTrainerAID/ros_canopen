@@ -1,6 +1,7 @@
 #ifndef CANOPEN_401_IO_H
 #define CANOPEN_401_IO_H
 
+#include <map>
 #include <canopen_401/base.h>
 #include <canopen_master/canopen.h>
 #include <ros/ros.h>
@@ -19,11 +20,20 @@
 
 namespace canopen {
 
+/**
+ *
+ * Define the default storage for the known LED CANopen profile
+ *
+ * Currently only the 401 profile is implemented
+ *
+ * Set some default Topics to handle with the node
+ *
+ */
 class IO401: public IoBase {
 protected:
 	void writeAnalogOut16(const std_msgs::Int16::ConstPtr& msg);
 	void writeDigitalOut8(const std_msgs::UInt8::ConstPtr& msg);
-	
+
 	virtual void handleRead(LayerStatus &status,
 			const LayerState &current_state);
 	virtual void handleWrite(LayerStatus &status,
@@ -35,6 +45,11 @@ protected:
 	virtual void handleRecover(LayerStatus &status);
 
 public:
+
+	/**
+	 * Write on the CAN bus
+	 * Using the defined storage entries
+	 */
 	template<typename T> bool set(T & entry, const typename T::type &value) {
 		try {
 			entry.set(value);
@@ -44,15 +59,17 @@ public:
 		return true;
 	}
 
-
-
 	IO401(const std::string &name, boost::shared_ptr<ObjectStorage> storage,
 			const canopen::Settings &settings) :
 			IoBase(name), storage_(storage) {
-			  
+
 		ros::NodeHandle n;
 		use_401_ = settings.get_optional<bool>("use_401", false);
-		
+
+		if (!use_401_) {
+			ROS_INFO("Please use a known LED CanOpen Profile like 401");
+		}
+
 		// Standard 401 Objects
 		storage->entry(DeviceType_, 0x1000); // ro: Device Type
 		storage->entry(ErrorRegister_, 0x1001); // ro: Error Register
@@ -69,103 +86,102 @@ public:
 		// Server SDO Parameter
 		storage->entry(COBIDReceive_, 0x1200, 0x01); // ro: COB ID Client to Server (Receive SDO)
 		storage->entry(COBIDTransmit_, 0x1200, 0x02); // ro: COB ID Server to Client (Transmit SDO)
-		
+
 		//following entries only used when the use_401 option is true in the yaml file
 		if (use_401_) {
-		  ROS_INFO("use 401");
-		  // Receive PDO 1 Parameter
-		  storage->entry(RPDO1MaxSub_, 0x1400, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(rPDO1COBID_, 0x1400, 0x01); // rw: COB ID used by PDO
-		  storage->entry(rPDO1TxType_, 0x1400, 0x02); // rw: Transmission Type
-		  storage->entry(rPDO1InhibitT_, 0x1400, 0x03); // rw: Inhibit Time
-		  storage->entry(rPDO1EventTimer_, 0x1400, 0x05); // rw: Event Timer
-		  storage->entry(rPDO1SyncStartVal_, 0x1400, 0x06); // rw: SYNC start value
-		  // Receive PDO 2 Parameter
-		  storage->entry(RPDO2MaxSub_, 0x1401, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(rPDO2COBID_, 0x1401, 0x01); // rw: COB ID used by PDO
-		  storage->entry(rPDO2TxType_, 0x1401, 0x02); // rw: Transmission Type
-		  storage->entry(rPDO2InhibitT_, 0x1401, 0x03); // rw: Inhibit Time
-		  storage->entry(rPDO2EventTimer_, 0x1401, 0x05); // rw: Event Timer
-		  storage->entry(rPDO2SyncStartVal_, 0x1401, 0x06); // rw: SYNC start value
-		  // Receive PDO 3 Parameter
-		  storage->entry(RPDO3MaxSub_, 0x1402, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(rPDO3COBID_, 0x1402, 0x01); // rw: COB ID used by PDO
-		  storage->entry(rPDO3TxType_, 0x1402, 0x02); // rw: Transmission Type
-		  storage->entry(rPDO3InhibitT_, 0x1402, 0x03); // rw: Inhibit Time
-		  storage->entry(rPDO3EventTimer_, 0x1402, 0x05); // rw: Event Timer
-		  storage->entry(rPDO3SyncStartVal_, 0x1402, 0x06); // rw: SYNC start value
-		  // Receive PDO 4 Parameter
-		  storage->entry(RPDO4MaxSub_, 0x1403, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(rPDO4COBID_, 0x1403, 0x01); // rw: COB ID used by PDO
-		  storage->entry(rPDO4TxType_, 0x1403, 0x02); // rw: Transmission Type
-		  storage->entry(rPDO4InhibitT_, 0x1403, 0x03); // rw: Inhibit Time
-		  storage->entry(rPDO4EventTimer_, 0x1403, 0x05); // rw: Event Timer
-		  storage->entry(rPDO4SyncStartVal_, 0x1403, 0x06); // rw: SYNC start value
-		  
-		  
-		  // Transmit PDO 1 Parameter
-		  storage->entry(TPDO1MaxSub_, 0x1800, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(tPDO1COBID_, 0x1800, 0x01); // rw: COB ID used by PDO
-		  storage->entry(tPDO1TxType_, 0x1800, 0x02); // rw: Transmission Type
-		  storage->entry(tPDO1InhibitT_, 0x1800, 0x03); // rw: Inhibit Time
-		  storage->entry(tPDO1EventTimer_, 0x1800, 0x05); // rw: Event Timer
-		  storage->entry(tPDO1SyncStartVal_, 0x1800, 0x06); // rw: SYNC start value
-		  // Transmit PDO 2 Parameter
-		  storage->entry(TPDO2MaxSub_, 0x1801, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(tPDO2COBID_, 0x1801, 0x01); // rw: COB ID used by PDO
-		  storage->entry(tPDO2TxType_, 0x1801, 0x02); // rw: Transmission Type
-		  storage->entry(tPDO2InhibitT_, 0x1801, 0x03); // rw: Inhibit Time
-		  storage->entry(tPDO2EventTimer_, 0x1801, 0x05); // rw: Event Timer
-		  storage->entry(tPDO2SyncStartVal_, 0x1801, 0x06); // rw: SYNC start value
-		  // Transmit PDO 3 Parameter
-		  storage->entry(TPDO3MaxSub_, 0x1802, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(tPDO3COBID_, 0x1802, 0x01); // rw: COB ID used by PDO
-		  storage->entry(tPDO3TxType_, 0x1802, 0x02); // rw: Transmission Type
-		  storage->entry(tPDO3InhibitT_, 0x1802, 0x03); // rw: Inhibit Time
-		  storage->entry(tPDO3EventTimer_, 0x1802, 0x05); // rw: Event Timer
-		  storage->entry(tPDO3SyncStartVal_, 0x1802, 0x06); // rw: SYNC start value
-		  // Transmit PDO 4 Parameter
-		  storage->entry(TPDO4MaxSub_, 0x1803, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(tPDO4COBID_, 0x1803, 0x01); // rw: COB ID used by PDO
-		  storage->entry(tPDO4TxType_, 0x1803, 0x02); // rw: Transmission Type
-		  storage->entry(tPDO4InhibitT_, 0x1803, 0x03); // rw: Inhibit Time
-		  storage->entry(tPDO4EventTimer_, 0x1803, 0x05); // rw: Event Timer
-		  storage->entry(tPDO4SyncStartVal_, 0x1803, 0x06); // rw: SYNC start value
-		  // Transmit PDO 5 Parameter
-		  storage->entry(TPDO5MaxSub_, 0x1804, 0x00); // ro: Highest SubIndex Supported
-		  storage->entry(tPDO5COBID_, 0x1804, 0x01); // rw: COB ID used by PDO
-		  storage->entry(tPDO5TxType_, 0x1804, 0x02); // rw: Transmission Type
-		  storage->entry(tPDO5InhibitT_, 0x1804, 0x03); // rw: Inhibit Time
-		  storage->entry(tPDO5EventTimer_, 0x1804, 0x05); // rw: Event Timer
-		  storage->entry(tPDO5SyncStartVal_, 0x1804, 0x06); // rw: SYNC start value
-		  
-		  
-		  /*
-		   * To get actual number of in/outputs from sub0 with the object storage entry,
-		   * move the code to handleInit. Otherwise node and entry won't be available. 
-		   */
-		  
-		  // Read Inputs 16 Bit
-		  //storage->entry(supported_drive_modes_, 0x6100, 0x00); // ro: Number of Input 16 bit: default=1
-		  //storage->entry(readDigitalIn16_, 0x6100, 0x01); // ro: Read Inputs 0x1 to 0x10: default=0
-		  //readDigitalIn16_pub_ = n.subscribe("readDigitalIn16", 1, &IO401::readDigitalIn16, this);
-		  
-		  // Write Outputs 8 Bit
-		  //storage->entry(supported_drive_modes_, 0x6200, 0x00); // ro: Number of Output 8 Bit: default=1
-		  storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
-		  writeDigitalOut8_sub_ = n.subscribe("writeDigitalOut8", 1, &IO401::writeDigitalOut8, this);
-		  /*
-		   * //Read Analogue Input 16 Bit
-		   * storage->entry(supported_drive_modes_, 0x6401, 0x00); // ro: Number of Analogue Input 16 Bit
-		   * storage->entry(supported_drive_modes_, 0x6401, 0x01); // ro: Analogue Input 1
-		   */
-		  // Write Analogue Output 16 Bit
-		  //storage->entry(supported_drive_modes_, 0x6411, 0x00); // ro: Number of Analogue Input 16 Bit
-		  storage->entry(writeAnalogOut16_, 0x6411, 0x01); // rw: Analogue Output 1
-		  writeAnalogOut16_sub_ = n.subscribe("writeAnalogOut16", 1, &IO401::writeAnalogOut16, this);
-  
+			ROS_INFO("use 401");
+			// Receive PDO 1 Parameter
+			storage->entry(RPDO1MaxSub_, 0x1400, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(rPDO1COBID_, 0x1400, 0x01); // rw: COB ID used by PDO
+			storage->entry(rPDO1TxType_, 0x1400, 0x02); // rw: Transmission Type
+			storage->entry(rPDO1InhibitT_, 0x1400, 0x03); // rw: Inhibit Time
+			storage->entry(rPDO1EventTimer_, 0x1400, 0x05); // rw: Event Timer
+			storage->entry(rPDO1SyncStartVal_, 0x1400, 0x06); // rw: SYNC start value
+			// Receive PDO 2 Parameter
+			storage->entry(RPDO2MaxSub_, 0x1401, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(rPDO2COBID_, 0x1401, 0x01); // rw: COB ID used by PDO
+			storage->entry(rPDO2TxType_, 0x1401, 0x02); // rw: Transmission Type
+			storage->entry(rPDO2InhibitT_, 0x1401, 0x03); // rw: Inhibit Time
+			storage->entry(rPDO2EventTimer_, 0x1401, 0x05); // rw: Event Timer
+			storage->entry(rPDO2SyncStartVal_, 0x1401, 0x06); // rw: SYNC start value
+			// Receive PDO 3 Parameter
+			storage->entry(RPDO3MaxSub_, 0x1402, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(rPDO3COBID_, 0x1402, 0x01); // rw: COB ID used by PDO
+			storage->entry(rPDO3TxType_, 0x1402, 0x02); // rw: Transmission Type
+			storage->entry(rPDO3InhibitT_, 0x1402, 0x03); // rw: Inhibit Time
+			storage->entry(rPDO3EventTimer_, 0x1402, 0x05); // rw: Event Timer
+			storage->entry(rPDO3SyncStartVal_, 0x1402, 0x06); // rw: SYNC start value
+			// Receive PDO 4 Parameter
+			storage->entry(RPDO4MaxSub_, 0x1403, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(rPDO4COBID_, 0x1403, 0x01); // rw: COB ID used by PDO
+			storage->entry(rPDO4TxType_, 0x1403, 0x02); // rw: Transmission Type
+			storage->entry(rPDO4InhibitT_, 0x1403, 0x03); // rw: Inhibit Time
+			storage->entry(rPDO4EventTimer_, 0x1403, 0x05); // rw: Event Timer
+			storage->entry(rPDO4SyncStartVal_, 0x1403, 0x06); // rw: SYNC start value
+
+			// Transmit PDO 1 Parameter
+			storage->entry(TPDO1MaxSub_, 0x1800, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(tPDO1COBID_, 0x1800, 0x01); // rw: COB ID used by PDO
+			storage->entry(tPDO1TxType_, 0x1800, 0x02); // rw: Transmission Type
+			storage->entry(tPDO1InhibitT_, 0x1800, 0x03); // rw: Inhibit Time
+			storage->entry(tPDO1EventTimer_, 0x1800, 0x05); // rw: Event Timer
+			storage->entry(tPDO1SyncStartVal_, 0x1800, 0x06); // rw: SYNC start value
+			// Transmit PDO 2 Parameter
+			storage->entry(TPDO2MaxSub_, 0x1801, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(tPDO2COBID_, 0x1801, 0x01); // rw: COB ID used by PDO
+			storage->entry(tPDO2TxType_, 0x1801, 0x02); // rw: Transmission Type
+			storage->entry(tPDO2InhibitT_, 0x1801, 0x03); // rw: Inhibit Time
+			storage->entry(tPDO2EventTimer_, 0x1801, 0x05); // rw: Event Timer
+			storage->entry(tPDO2SyncStartVal_, 0x1801, 0x06); // rw: SYNC start value
+			// Transmit PDO 3 Parameter
+			storage->entry(TPDO3MaxSub_, 0x1802, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(tPDO3COBID_, 0x1802, 0x01); // rw: COB ID used by PDO
+			storage->entry(tPDO3TxType_, 0x1802, 0x02); // rw: Transmission Type
+			storage->entry(tPDO3InhibitT_, 0x1802, 0x03); // rw: Inhibit Time
+			storage->entry(tPDO3EventTimer_, 0x1802, 0x05); // rw: Event Timer
+			storage->entry(tPDO3SyncStartVal_, 0x1802, 0x06); // rw: SYNC start value
+			// Transmit PDO 4 Parameter
+			storage->entry(TPDO4MaxSub_, 0x1803, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(tPDO4COBID_, 0x1803, 0x01); // rw: COB ID used by PDO
+			storage->entry(tPDO4TxType_, 0x1803, 0x02); // rw: Transmission Type
+			storage->entry(tPDO4InhibitT_, 0x1803, 0x03); // rw: Inhibit Time
+			storage->entry(tPDO4EventTimer_, 0x1803, 0x05); // rw: Event Timer
+			storage->entry(tPDO4SyncStartVal_, 0x1803, 0x06); // rw: SYNC start value
+			// Transmit PDO 5 Parameter
+			storage->entry(TPDO5MaxSub_, 0x1804, 0x00); // ro: Highest SubIndex Supported
+			storage->entry(tPDO5COBID_, 0x1804, 0x01); // rw: COB ID used by PDO
+			storage->entry(tPDO5TxType_, 0x1804, 0x02); // rw: Transmission Type
+			storage->entry(tPDO5InhibitT_, 0x1804, 0x03); // rw: Inhibit Time
+			storage->entry(tPDO5EventTimer_, 0x1804, 0x05); // rw: Event Timer
+			storage->entry(tPDO5SyncStartVal_, 0x1804, 0x06); // rw: SYNC start value
+
+			/*
+			 * To get actual number of in/outputs from sub0 with the object storage entry,
+			 * move the code to handleInit. Otherwise node and entry won't be available.
+			 */
+
+			// Read Inputs 16 Bit
+			//storage->entry(supported_drive_modes_, 0x6100, 0x00); // ro: Number of Input 16 bit: default=1
+			//storage->entry(readDigitalIn16_, 0x6100, 0x01); // ro: Read Inputs 0x1 to 0x10: default=0
+			//readDigitalIn16_pub_ = n.subscribe("readDigitalIn16", 1, &IO401::readDigitalIn16, this);
+			// Write Outputs 8 Bit
+			//storage->entry(supported_drive_modes_, 0x6200, 0x00); // ro: Number of Output 8 Bit: default=1
+			storage->entry(writeDigitalOut8_, 0x6200, 1); // rw: Write Outputs 0x1 to 0x8
+			writeDigitalOut8_sub_ = n.subscribe("writeDigitalOut8", 1,
+					&IO401::writeDigitalOut8, this);
+			/*
+			 * //Read Analogue Input 16 Bit
+			 * storage->entry(supported_drive_modes_, 0x6401, 0x00); // ro: Number of Analogue Input 16 Bit
+			 * storage->entry(supported_drive_modes_, 0x6401, 0x01); // ro: Analogue Input 1
+			 */
+			// Write Analogue Output 16 Bit
+			//storage->entry(supported_drive_modes_, 0x6411, 0x00); // ro: Number of Analogue Input 16 Bit
+			storage->entry(writeAnalogOut16_, 0x6411, 0x01); // rw: Analogue Output 1
+			writeAnalogOut16_sub_ = n.subscribe("writeAnalogOut16", 1,
+					&IO401::writeAnalogOut16, this);
+
 		}
-		
+
 	}
 
 	class Allocator: public IoBase::Allocator {
@@ -177,39 +193,204 @@ public:
 	};
 
 private:
-  
+
 	boost::shared_ptr<ObjectStorage> storage_;
 	bool use_401_;
 	ros::Subscriber writeDigitalOut8_sub_, writeAnalogOut16_sub_;
-	
+
 	canopen::ObjectStorage::Entry<uint8_t> writeDigitalOut8_, ErrorRegister_;
 	canopen::ObjectStorage::Entry<uint16_t> readDigitalIn16_;
 	canopen::ObjectStorage::Entry<int16_t> writeAnalogOut16_;
-	canopen::ObjectStorage::Entry<uint32_t> DeviceType_, StandardErrorField_, emergencyCOBID_, VendorID_,
-	ProductCode_, RevisionNumber_, SerialNumber_, COBIDReceive_, COBIDTransmit_;
+	canopen::ObjectStorage::Entry<uint32_t> DeviceType_, StandardErrorField_,
+			emergencyCOBID_, VendorID_, ProductCode_, RevisionNumber_,
+			SerialNumber_, COBIDReceive_, COBIDTransmit_;
 	canopen::ObjectStorage::Entry<std::string> ManufacturerSoftwareVersion_;
-	
+
 	//RPDO
-	canopen::ObjectStorage::Entry<uint8_t> RPDO1MaxSub_, RPDO2MaxSub_,RPDO3MaxSub_,RPDO4MaxSub_,
-	  rPDO1TxType_, rPDO2TxType_, rPDO3TxType_, rPDO4TxType_,
-	  rPDO1SyncStartVal_, rPDO2SyncStartVal_, rPDO3SyncStartVal_, rPDO4SyncStartVal_;
-	canopen::ObjectStorage::Entry<uint16_t> rPDO1InhibitT_, rPDO2InhibitT_, rPDO3InhibitT_, rPDO4InhibitT_, 
-	  rPDO1EventTimer_, rPDO2EventTimer_, rPDO3EventTimer_, rPDO4EventTimer_;
-	canopen::ObjectStorage::Entry<uint32_t> rPDO1COBID_, rPDO2COBID_, rPDO3COBID_, rPDO4COBID_;  
-	
+	canopen::ObjectStorage::Entry<uint8_t> RPDO1MaxSub_, RPDO2MaxSub_,
+			RPDO3MaxSub_, RPDO4MaxSub_, rPDO1TxType_, rPDO2TxType_,
+			rPDO3TxType_, rPDO4TxType_, rPDO1SyncStartVal_, rPDO2SyncStartVal_,
+			rPDO3SyncStartVal_, rPDO4SyncStartVal_;
+	canopen::ObjectStorage::Entry<uint16_t> rPDO1InhibitT_, rPDO2InhibitT_,
+			rPDO3InhibitT_, rPDO4InhibitT_, rPDO1EventTimer_, rPDO2EventTimer_,
+			rPDO3EventTimer_, rPDO4EventTimer_;
+	canopen::ObjectStorage::Entry<uint32_t> rPDO1COBID_, rPDO2COBID_,
+			rPDO3COBID_, rPDO4COBID_;
+
 	//TPDO  
-	canopen::ObjectStorage::Entry<uint8_t> TPDO1MaxSub_, TPDO2MaxSub_, TPDO3MaxSub_, TPDO4MaxSub_, TPDO5MaxSub_,
-	  tPDO1TxType_, tPDO2TxType_, tPDO3TxType_, tPDO4TxType_, tPDO5TxType_,
-	  tPDO1SyncStartVal_, tPDO2SyncStartVal_, tPDO3SyncStartVal_, tPDO4SyncStartVal_, tPDO5SyncStartVal_;
-	canopen::ObjectStorage::Entry<uint16_t> tPDO1InhibitT_, tPDO2InhibitT_, tPDO3InhibitT_, tPDO4InhibitT_, tPDO5InhibitT_,
-	  tPDO1EventTimer_, tPDO2EventTimer_, tPDO3EventTimer_, tPDO4EventTimer_, tPDO5EventTimer_;
-	canopen::ObjectStorage::Entry<uint32_t> tPDO1COBID_, tPDO2COBID_, tPDO3COBID_, tPDO4COBID_, tPDO5COBID_;
+	canopen::ObjectStorage::Entry<uint8_t> TPDO1MaxSub_, TPDO2MaxSub_,
+			TPDO3MaxSub_, TPDO4MaxSub_, TPDO5MaxSub_, tPDO1TxType_,
+			tPDO2TxType_, tPDO3TxType_, tPDO4TxType_, tPDO5TxType_,
+			tPDO1SyncStartVal_, tPDO2SyncStartVal_, tPDO3SyncStartVal_,
+			tPDO4SyncStartVal_, tPDO5SyncStartVal_;
+	canopen::ObjectStorage::Entry<uint16_t> tPDO1InhibitT_, tPDO2InhibitT_,
+			tPDO3InhibitT_, tPDO4InhibitT_, tPDO5InhibitT_, tPDO1EventTimer_,
+			tPDO2EventTimer_, tPDO3EventTimer_, tPDO4EventTimer_,
+			tPDO5EventTimer_;
+	canopen::ObjectStorage::Entry<uint32_t> tPDO1COBID_, tPDO2COBID_,
+			tPDO3COBID_, tPDO4COBID_, tPDO5COBID_;
 
 	std::map<int, canopen::ObjectStorage::Entry<uint8_t> > rpdo_, tpdo_;
-	std::map<int, std::vector< canopen::ObjectStorage::Entry<uint32_t> > > rpdo_map, tpdo_map;
-	
+	std::map<int, std::vector<canopen::ObjectStorage::Entry<uint32_t> > >
+			rpdo_map, tpdo_map;
+
 };
 
-}
+/**
+ * Status class for led channels
+ *
+ * set channels
+ * set bank
+ * set groups - not implemented
+ *
+ *
+ */
+class State401 {
+
+public:
+	State401(int leds, int banks, int bank_size, int groups) {
+		this->leds_ = leds;
+		this->banks_ = banks;
+		this->bank_size_ = bank_size;
+		this->groups_ = groups;
+
+		// set all to zero
+		createInitState();
+	}
+
+	std::vector<int> getLEDchannels() {
+		return this->led_channels;
+	}
+	std::vector<int> getBank(int bank) {
+
+		std::map<int, std::vector<int *>>::iterator bankit;
+
+		std::vector<int> bank_channels;
+		while (bankit != bank_list.end()) {
+			if ((*bankit).first == (bank - 1)) {
+				std::vector<int*> vvec = (*bankit).second;
+				std::vector<int*>::iterator vit;
+				while (vit != vvec.end()) {
+					int* ptr = *vvec;
+					bank_channels.push_back(*ptr);
+				}
+			}
+		}
+
+		return bank_channels;
+	}
+
+	int getLEDChannelCount() {
+		return this->leds_;
+	}
+	int getBankCount() {
+		return this->banks_;
+	}
+	int getBankSize() {
+		return this->bank_size_;
+	}
+	int getGroupCount() {
+		return this->groups_;
+	}
+
+private:
+	int leds_, banks_, bank_size_, groups_;
+
+	// all led channels
+	std::vector<int> led_channels;
+	// bank, ptr to led_channels;
+	std::map<int, std::vector<int *>> bank_list;
+	// group, ptr to the bank not implemented
+	std::map<int, std::map<int, std::vector<int *>>*> group_list;
+
+	void createInitState() {
+		// first init the led channel vector
+		led_channels(leds_); // zero-initialized
+
+		// create bank map with ptrs to the real led channels
+		for (int i = 0; i < this->banks_; i++) {
+			std::vector<int*> bank_vec;
+			for (int k = 0; k < this->bank_size_; k++) {
+				// get the real led channel
+				int led_channel_obj = (bank_size_ * i) + k;
+				if (led_channel_obj < leds_) {
+					std::vector<int>::iterator it = led_channels.at(
+							led_channel_obj);
+
+					// set the pointer to the real led_channel
+					bank_vec.push_back(&(*it));
+				}
+			}
+			// insert
+			bank_list.insert(std::pair<int, std::vector<int *>>(i, bank_vec));
+		}
+	}
+
+	/*
+	 * Compare all led channels
+	 * compare the states and return a map with led channel - 1 and brightness value
+	 */
+	std::map<int, int> compareAndUpdate(std::vector<int> led_channel_set) {
+		std::map<int, int> led_channel_to_change;
+
+		// check the size
+		if (led_channel_set.size() != this->led_channels.size())
+			return led_channel_to_change;
+
+		auto leftIt = this->led_channels;
+		auto rightIt = led_channel_set;
+
+		int c_index = 0;
+		while (leftIt != led_channels.end() && rightIt != led_channel_set.end()) {
+			if (*leftIt != *rightIt) {
+				// update
+				*leftIt = *rightIt;
+				led_channel_to_change.insert(
+						std::pair<int, int>(c_index, *rightIt));
+			}
+
+			leftIt++;
+			rightIt++;
+			c_index++;
+		}
+
+		return led_channel_to_change;
+	}
+	/*
+	 * Compare a bank change
+	 * compare the states and return a map with led channel - 1 and brightness value (should change
+	 */
+	std::map<int, int> compareAndUpdate(int bank, std::vector<int> bank_set) {
+		std::map<int, int> led_channel_to_change;
+
+		std::vector<int> bank_channels = this->getBank(bank);
+
+		// check the size
+		if (bank_channels.size() != bank_set.size())
+			return led_channel_to_change;
+
+		auto leftIt = bank_channels;
+		auto rightIt = bank_set;
+
+		int c_index = 0;
+		while (leftIt != bank_channels.end() && rightIt != bank_set.end()) {
+			if (*leftIt != *rightIt) {
+				// update
+				this->led_channels.at((bank * this->bank_size_) + c_index) =
+						*rightIt;
+				led_channel_to_change.insert(
+						std::pair<int, int>(c_index, *rightIt));
+			}
+
+			leftIt++;
+			rightIt++;
+			c_index++;
+		}
+
+		return led_channel_to_change;
+	}
+};
+
+} // end canoopen namespace
 
 #endif
