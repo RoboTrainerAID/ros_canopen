@@ -43,6 +43,7 @@ class LedLayer: public canopen::Layer {
 	ros::NodeHandle nh_;
 	boost::shared_ptr<canopen::IoBase> base_;
 	const boost::shared_ptr<ObjectStorage> storage_;
+	const canopen::State401 *state401;
 
 	uint16_t leds_, banks_, bank_size_, groups_;
 	canopen::ObjectStorage::Entry<int8_t> selfTest_;
@@ -55,6 +56,7 @@ class LedLayer: public canopen::Layer {
 protected:
 	void writemultiplexedOut16(const canopen_led_node::Led::ConstPtr& msg);
 	void setLed(const canopen_led_node::Led::ConstPtr& msg);
+	void setAllChannels(const canopen_led_node::Led::ConstPtr& msg);
 	void setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg);
 	void globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg);
 	void selfTest(const std_msgs::Bool::ConstPtr& msg);
@@ -88,6 +90,8 @@ private:
 	virtual void handleRecover(canopen::LayerStatus &status) {
 		handleRead(status, Layer::Ready);
 	}
+
+
 
 public:
 	// dublicated

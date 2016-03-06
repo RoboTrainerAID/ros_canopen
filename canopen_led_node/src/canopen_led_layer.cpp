@@ -2,6 +2,41 @@
 
 using namespace canopen;
 
+
+/**
+ * Compare and Update returns a map with [index_in_all_channels] [brightness]
+ * only the values they should be changed are in the map
+ */
+void LedLayer::setAllChannels(const canopen_led_node::Led::ConstPtr& msg) {
+	int group = msg->group;
+	int bank = msg->bank;
+	int led = msg->led;
+	int data_length = msg->data.size();
+	if (group != 0) {
+		// ignore
+	} else if (bank != 0) { // example for single banks
+
+		// bank example
+		if (data_length == bank_size_) {
+
+			std::vector<int> b_change_set;
+			for( int i = 0; i < 15; i++)
+				b_change_set.push_back((int)msg->data[i - 1]); // zero-initializedfor( int i = 0; i < 15; i++)
+
+			// compare and get the tochange map
+			std::map<int, int> to_change = this->state401->compareAndUpdate(bank, b_change_set);
+
+			//direct mapping
+			bool err = true;
+			for (auto it=to_change.begin(); it!=to_change.end(); ++it)
+				err = led_map[bank][ (to_change->first - (bank*bank_size_) ) ].set( to_change->second );
+
+			if( !err ) // maybe send the old state again
+				this->state401->returnToLastState();
+		}
+	}
+}
+
 /*
  *    int16 group
  *    int16 bank
@@ -111,6 +146,9 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		groups_ = (const int&) options["groups"];
 	else
 		groups_ = 0;
+
+	// init the state object
+	this->state401 = new canopen::State401(leds_, banks_, bank_size_, groups_);
 
 	//setup storage entries
 
