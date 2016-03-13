@@ -16,24 +16,34 @@ void LedLayer::setAllChannels(const canopen_led_node::Led::ConstPtr& msg) {
 		// ignore
 	} else if (bank != 0) { // example for single banks
 
-		// bank example
-		if (data_length == bank_size_) {
-
-			std::vector<int> b_change_set;
-			for( int i = 0; i < 15; i++)
-				b_change_set.push_back((int)msg->data[i - 1]); // zero-initializedfor( int i = 0; i < 15; i++)
-
-			// compare and get the tochange map
-			std::map<int, int> to_change = this->state401->compareAndUpdate(bank, b_change_set);
-
-			//direct mapping
-			bool err = true;
-			for (auto it=to_change.begin(); it!=to_change.end(); ++it)
-				err = led_map[bank][ (to_change->first - (bank*bank_size_) ) ].set( to_change->second );
-
-			if( !err ) // maybe send the old state again
-				this->state401->returnToLastState();
-		}
+	  // bank example
+	  if (data_length == bank_size_) {
+	    
+	    std::vector<int> b_change_set;
+	    for( int i = 0; i < 15; i++)
+	      b_change_set.push_back((int)msg->data[i - 1]); // zero-initializedfor( int i = 0; i < 15; i++)
+	      
+	      // compare and get the tochange map
+	      std::map<int, int> to_change = ledState_->compareAndUpdate(bank, b_change_set);
+	    
+	    //direct mapping
+	    //bool err = true;
+	    for (std::map<int, int>::iterator it = to_change.begin(); it!=to_change.end(); ++it){
+	      //TODO
+	      //err = led_map[bank][(to_change->first -(bank*bank_size_))].set(to_change->second );
+	      try {
+		led_map[bank][(it->first%bank_size_) + 1].set(it->second);
+	      } catch(...) {
+		// maybe send the old state again
+		ROS_INFO("couldn't set all channels");
+		ledState_->returnToLastState();
+	      }
+	      
+	    }
+	    
+	    //if( !err ) // maybe send the old state again
+	    //  ledState_->returnToLastState();
+	  }
 	}
 }
 
@@ -67,13 +77,20 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
 	} else if (bank != 0) {
 		if (data_length == bank_size_) {
 			//direct mapping
-			for (int i = 1; i <= bank_size_; i++) {
-				led_map[bank][i].set(msg->data[i - 1]);
-			}
+			//for (int i = 1; i <= bank_size_; i++) {led_map[bank][i].set(msg->data[i - 1]);}
+			//TODO 
+			std::vector<int> b_change_set(msg->data.begin(), msg->data.end());
+			insertChanges(ledState_->compareAndUpdate(bank, b_change_set));
 		} else if (data_length == 1) {
 			if (led != 0) {
 				//set one led channel
-				led_map[bank][led].set(msg->data[0]);
+				//led_map[bank][led].set(msg->data[0]);
+				//TODO 
+				//std::vector<int> b_change_set(ledState_->getLastState());
+				//b_change_set[(bank - 1) * bank_size_ + (led - 1)] = msg->data[0];
+				//insertChanges(ledState_->compareAndUpdate(b_change_set));
+				insertChanges(ledState_->compareAndUpdate(
+				  (bank - 1) * bank_size_ + (led - 1), msg->data[0]));
 			} else {
 				//bankBrightness
 				bankBrightness_map[bank].set(msg->data[0]);
@@ -82,12 +99,16 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
 			if (led != 0) {
 				//set all 3 channels of one led
 				for (int i = led; i < led + 3; i++) {
-					led_map[bank][i].set(msg->data[(i - 1) % 3]);
+					//led_map[bank][i].set(msg->data[(i - 1) % 3]);
+					insertChanges(ledState_->compareAndUpdate(
+					  (bank - 1) * bank_size_ + (i - 1), msg->data[(i - 1) % 3]));
 				}
 			} else {
 				//all leds to same rgb-color
 				for (int i = 1; i <= bank_size_; i++) {
-					led_map[bank][i].set(msg->data[(i - 1) % 3]);
+					//led_map[bank][i].set(msg->data[(i - 1) % 3]);
+					insertChanges(ledState_->compareAndUpdate(
+					  (bank - 1) * bank_size_ + (i - 1), msg->data[(i - 1) % 3]));
 				}
 			}
 		}
@@ -148,7 +169,7 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		groups_ = 0;
 
 	// init the state object
-	this->state401 = new canopen::State401(leds_, banks_, bank_size_, groups_);
+	ledState_ = new canopen::LedState(leds_, banks_, bank_size_, groups_);
 
 	//setup storage entries
 
@@ -170,7 +191,6 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 	}
 
 	for (int i = 1; i <= banks_; i++) {
-		//TODO test if working i > 1
 		storage->entry(bank_map[i], (0x2100 + i), 0);
 		storage->entry(bankBrightness_map[i], 0x2100, i);
 
@@ -197,6 +217,20 @@ void LedLayer::handleRead(LayerStatus &status,
 }
 void LedLayer::handleWrite(LayerStatus &status,
 		const LayerState &current_state) {
+  //TODO mutex on ledUpdates?
+  //TODO add timers/count to reduce updaterate
+  
+  //push updates
+  for(std::map<int, int>::iterator it = ledUpdates_.begin(); it!= ledUpdates_.end(); ++it) {
+    try {
+      led_map[(it->first/bank_size_) + 1][(it->first%bank_size_) + 1].set(it->second );
+    } catch(...) {
+      // maybe send the old state again
+      ROS_INFO("couldn't set all channels");
+      ledState_->returnToLastState();
+    }
+  }
+  ledUpdates_.clear();
 
 }
 void LedLayer::handleInit(LayerStatus &status) {
