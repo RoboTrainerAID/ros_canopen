@@ -12,7 +12,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "led_test");
   ros::NodeHandle n;
   ros::Publisher setLed_pub = n.advertise<canopen_led_node::Led>("/set_led", 10);
-  ros::Rate loop_rate(1);
+  ros::Rate loop_rate(4);
   
   ros::spinOnce();
   loop_rate.sleep();

@@ -6,6 +6,10 @@
 #include <canopen_master/canopen.h>
 #include <canopen_401/base.h>
 #include <canopen_led_node/Led.h>
+#include <canopen_led_node/BankMapping.h>
+#include <canopen_led_node/GlobalMapping.h>
+
+#include <boost/chrono/system_clocks.hpp>
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -24,6 +28,7 @@
 #include <std_msgs/Int16MultiArray.h>
 
 namespace canopen {
+typedef boost::chrono::high_resolution_clock::time_point time_point;
   
 class LedState {
 
@@ -133,15 +138,16 @@ public:
 	std::map<int, int> compareAndUpdate(int led_channel, int value) {
 		this->led_channels_last_version = this->led_channels;
 		std::map<int, int> led_channel_to_change;
-
+		
 		// check the size
-		if (led_channel <= 0 || led_channel >= this->led_channels.size()) {
+		if (led_channel < 0 || led_channel >= this->led_channels.size()) {
 		  return led_channel_to_change;
 		} else if(led_channels[led_channel] != value) {
 		  // update
 		  led_channels[led_channel] = value;
-		  led_channel_to_change.insert(std::pair<int, int>(1, value));
+		  led_channel_to_change.insert(std::pair<int, int>(led_channel, value));
 		}
+		std::cout << "return: " << led_channel_to_change.size() << std::endl;
 		return led_channel_to_change;
 	}
 	
@@ -166,7 +172,7 @@ public:
 				// update
 				*leftIt = *rightIt;
 				led_channel_to_change.insert(
-						std::pair<int, int>(c_index + 1, *rightIt));
+						std::pair<int, int>(c_index, *rightIt));
 			}
 
 			leftIt++;
@@ -179,17 +185,18 @@ public:
 	/*
 	 * Compare a bank change
 	 * compare the states and return a map with led channel - 1 and brightness value (should change
+	 * 
+	 * bank 0 ... n
 	 */
 	std::map<int, int> compareAndUpdate(int bank, std::vector<int> bank_set) {
 		// save last stand
 		this->led_channels_last_version = this->led_channels;
 		std::map<int, int> led_channel_to_change;
 
-		if (bank <= 0 || bank > this->banks_)
+		if (bank < 0 || bank >= this->banks_)
 			return led_channel_to_change;
 		std::vector<int> bank_channels = this->getBank(bank);
-		bank -= 1;
-
+		
 		// check the size
 		if (bank_channels.size() != bank_set.size())
 			return led_channel_to_change;
@@ -205,7 +212,7 @@ public:
 						*rightIt;
 				led_channel_to_change.insert(
 						std::pair<int, int>(
-								(bank * this->bank_size_) + c_index + 1,
+								(bank * this->bank_size_) + c_index,
 								*rightIt));
 			}
 
@@ -255,9 +262,9 @@ private:
 
 	std::vector<int> getBank(int bank) {
 		std::vector<int> bank_channels;
-		if (bank <= 0 || bank > this->banks_)
+		if (bank < 0 || bank >= this->banks_)
 			return bank_channels;
-		bank -= 1;
+		
 
 		for (std::map<int, std::vector<int*> >::iterator bankit = this->bank_list.begin();
 				bankit != this->bank_list.end(); bankit++) {
@@ -309,14 +316,16 @@ class LedLayer: public canopen::Layer {
 protected:
 	void writemultiplexedOut16(const canopen_led_node::Led::ConstPtr& msg);
 	void setLed(const canopen_led_node::Led::ConstPtr& msg);
-	void setAllChannels(const canopen_led_node::Led::ConstPtr& msg);
+	void setGlobalMapping(const canopen_led_node::GlobalMapping::ConstPtr& msg);
+	void setBankMapping(const canopen_led_node::BankMapping::ConstPtr& msg);
 	void setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg);
 	void globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg);
 	void selfTest(const std_msgs::Bool::ConstPtr& msg);
 
 private:
 	ros::Subscriber selfTest_sub_, set_led_sub_, writemultiplexedOut16_sub_,
-			globalBrightness_sub_, globalLedArrayEnable_sub_;
+			globalBrightness_sub_, globalLedArrayEnable_sub_, bankMapping_sub_,
+			globalMapping_sub_;
 
 	//Key is the bank/group number.
 	//bank_map: for each bank, contains the subentry that specifies the number of channels (0x2101sub0 - 0x21FFsub0)
@@ -334,6 +343,10 @@ private:
 	
 	//changes to leds that yet have to be pushed by handleWrite
 	std::map<int, int> ledUpdates_;
+	
+	time_point last_update_;
+	boost::chrono::milliseconds step_;
+
 	
 	//insert map to_change into ledUpdates with value update
 	void insertChanges(std::map<int, int> to_change) {

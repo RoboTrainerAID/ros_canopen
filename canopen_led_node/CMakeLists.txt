@@ -49,6 +49,8 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    Led.msg
+   BankMapping.msg 
+   GlobalMapping.msg 
  )
 
 ## Generate services in the 'srv' folder

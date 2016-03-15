@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RANGE=150
+RANGE=100
 RANGECHANNEL=15
 RANGEBANK=4
 
@@ -10,12 +10,15 @@ while [  $COUNTER -lt 200 ]; do
 
 number1=$RANDOM
 let "number1 %= $RANGE"
+number1+=50
 
 number2=$RANDOM
 let "number2 %= $RANGE"
+number2+=50
 
 number3=$RANDOM
 let "number3 %= $RANGE"
+number3+=50
 
 channel=$RANDOM
 let "channel %= $RANGECHANNEL"
@@ -29,3 +32,5 @@ bank=$bank+1
 done
 
 echo "end"
+
+echo "start GlobalMapping"

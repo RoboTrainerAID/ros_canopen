@@ -30,10 +30,11 @@ nodes:
     #eds_file: "test/config/Led.dcf" 
     ### LED Channels
     use_401: false
-    leds: 20 # number of leds (multiplied by 3 for RGB)
+    leds: 60 # number of leds (1 LED per color channel (RGB))
     ### Banks
     banks: 4 # number of banks
     bank_size: 15 # size of one bank
     ### Groups 
     groups: 2 # groups
     ### defaults will be merged recursively (only structs), node settings have precedence
+    step: 100 # stepwidth to push ledUpdates to bus in ms

@@ -7,44 +7,41 @@ using namespace canopen;
  * Compare and Update returns a map with [index_in_all_channels] [brightness]
  * only the values they should be changed are in the map
  */
-void LedLayer::setAllChannels(const canopen_led_node::Led::ConstPtr& msg) {
-	int group = msg->group;
+void LedLayer::setBankMapping(const canopen_led_node::BankMapping::ConstPtr& msg) {
 	int bank = msg->bank;
-	int led = msg->led;
 	int data_length = msg->data.size();
-	if (group != 0) {
-		// ignore
-	} else if (bank != 0) { // example for single banks
-
+	if (bank != 0) { // example for single banks
 	  // bank example
 	  if (data_length == bank_size_) {
 	    
 	    std::vector<int> b_change_set;
 	    for( int i = 0; i < 15; i++)
-	      b_change_set.push_back((int)msg->data[i - 1]); // zero-initializedfor( int i = 0; i < 15; i++)
+	      b_change_set.push_back((int)msg->data[i]); // zero-initializedfor( int i = 0; i < 15; i++)
 	      
-	      // compare and get the tochange map
-	      std::map<int, int> to_change = ledState_->compareAndUpdate(bank, b_change_set);
+	    // compare and get the tochange map
+	    insertChanges(ledState_->compareAndUpdate((bank- 1), b_change_set));
 	    
-	    //direct mapping
-	    //bool err = true;
-	    for (std::map<int, int>::iterator it = to_change.begin(); it!=to_change.end(); ++it){
-	      //TODO
-	      //err = led_map[bank][(to_change->first -(bank*bank_size_))].set(to_change->second );
-	      try {
-		led_map[bank][(it->first%bank_size_) + 1].set(it->second);
-	      } catch(...) {
-		// maybe send the old state again
-		ROS_INFO("couldn't set all channels");
-		ledState_->returnToLastState();
-	      }
-	      
-	    }
-	    
-	    //if( !err ) // maybe send the old state again
-	    //  ledState_->returnToLastState();
 	  }
 	}
+}
+
+/**
+ * Compare and Update returns a map with [index_in_all_channels] [brightness]
+ * only the values they should be changed are in the map
+ */
+void LedLayer::setGlobalMapping(const canopen_led_node::GlobalMapping::ConstPtr& msg) {
+    int data_length = msg->data.size();
+      if (data_length == ledState_->getLEDChannelCount()) {
+	
+	std::vector<int> b_change_set;
+	for( int i = 0; i < data_length; i++)
+	  b_change_set.push_back((int)msg->data[i]); // zero-initializedfor( int i = 0; i < 15; i++)
+	  
+	// compare and get the tochange map
+	insertChanges(ledState_->compareAndUpdate(b_change_set));
+	
+      }
+	
 }
 
 /*
@@ -77,23 +74,18 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
 	} else if (bank != 0) {
 		if (data_length == bank_size_) {
 			//direct mapping
-			//for (int i = 1; i <= bank_size_; i++) {led_map[bank][i].set(msg->data[i - 1]);}
-			//TODO 
 			std::vector<int> b_change_set(msg->data.begin(), msg->data.end());
 			insertChanges(ledState_->compareAndUpdate(bank, b_change_set));
 		} else if (data_length == 1) {
 			if (led != 0) {
 				//set one led channel
 				//led_map[bank][led].set(msg->data[0]);
-				//TODO 
-				//std::vector<int> b_change_set(ledState_->getLastState());
-				//b_change_set[(bank - 1) * bank_size_ + (led - 1)] = msg->data[0];
-				//insertChanges(ledState_->compareAndUpdate(b_change_set));
 				insertChanges(ledState_->compareAndUpdate(
 				  (bank - 1) * bank_size_ + (led - 1), msg->data[0]));
 			} else {
 				//bankBrightness
 				bankBrightness_map[bank].set(msg->data[0]);
+				ledState_->compareAndUpdate((bank - 1), std::vector<int>(bank_size_, msg->data[0]));
 			}
 		} else if (data_length == 3) {
 			if (led != 0) {
@@ -124,6 +116,8 @@ void LedLayer::selfTest(const std_msgs::Bool::ConstPtr& msg) {
 void LedLayer::setGlobalBrightness(const std_msgs::UInt16::ConstPtr& msg) {
 	uint16_t value = msg->data;
 	set(globalBrightness_, value);
+	std::vector<int> b_change_set(ledState_->getLEDChannelCount(), value);
+	ledState_->compareAndUpdate(b_change_set);
 }
 
 void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
@@ -131,6 +125,8 @@ void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
 		set(globalLedArrayEnable_, (uint8_t) 1);
 	} else {
 		set(globalLedArrayEnable_, (uint8_t) 0);
+		std::vector<int> b_change_set(ledState_->getLEDChannelCount(), 0);
+		ledState_->compareAndUpdate(b_change_set);
 	}
 }
 
@@ -142,6 +138,7 @@ void LedLayer::writemultiplexedOut16(
 		set(channelMultiplexer_, led);
 		set(outputValue_, msg->data[0]);
 	}
+	//doesn't change state, not supported atm
 }
 
 LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
@@ -167,10 +164,15 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		groups_ = (const int&) options["groups"];
 	else
 		groups_ = 0;
+	if (options.hasMember("step"))
+		step_ = (const boost::chrono::milliseconds&) options["step"];
+	else
+		step_ = boost::chrono::milliseconds(100);
 
 	// init the state object
 	ledState_ = new canopen::LedState(leds_, banks_, bank_size_, groups_);
-
+	last_update_ = boost::chrono::high_resolution_clock::now();
+	
 	//setup storage entries
 
 	// ManufacturerObjects
@@ -201,14 +203,16 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 	}
 
 	//setup callbacks
-	selfTest_sub_ = nh.subscribe("selftest", 1, &LedLayer::selfTest, this);
-	set_led_sub_ = nh.subscribe("set_led", 1, &LedLayer::setLed, this);
-	globalBrightness_sub_ = nh.subscribe("global_brightness", 1,
+	selfTest_sub_ = nh.subscribe("selftest", 100, &LedLayer::selfTest, this);
+	set_led_sub_ = nh.subscribe("set_led", 100, &LedLayer::setLed, this);
+	globalBrightness_sub_ = nh.subscribe("global_brightness", 100,
 			&LedLayer::setGlobalBrightness, this);
-	globalLedArrayEnable_sub_ = nh.subscribe("globalLedsEnable", 1,
+	globalLedArrayEnable_sub_ = nh.subscribe("globalLedsEnable", 100,
 			&LedLayer::globalLedArrayEnable, this);
-	writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1,
-			&LedLayer::writemultiplexedOut16, this);
+	//writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1, &LedLayer::writemultiplexedOut16, this);
+	
+	bankMapping_sub_ = nh.subscribe("bank_mapping", 100, &LedLayer::setBankMapping, this);;
+	globalMapping_sub_ = nh.subscribe("global_mapping", 100, &LedLayer::setGlobalMapping, this);;
 }
 
 void LedLayer::handleRead(LayerStatus &status,
@@ -219,19 +223,24 @@ void LedLayer::handleWrite(LayerStatus &status,
 		const LayerState &current_state) {
   //TODO mutex on ledUpdates?
   //TODO add timers/count to reduce updaterate
-  
-  //push updates
-  for(std::map<int, int>::iterator it = ledUpdates_.begin(); it!= ledUpdates_.end(); ++it) {
-    try {
-      led_map[(it->first/bank_size_) + 1][(it->first%bank_size_) + 1].set(it->second );
-    } catch(...) {
-      // maybe send the old state again
-      ROS_INFO("couldn't set all channels");
-      ledState_->returnToLastState();
+    time_point current_time = boost::chrono::high_resolution_clock::now();
+    
+    if((current_time - last_update_) > step_) {
+      last_update_ = current_time;
+      //push updates
+      for(std::map<int, int>::iterator it = ledUpdates_.begin(); it!= ledUpdates_.end(); ++it) {
+	try {
+	  led_map[(it->first/bank_size_) + 1][(it->first%bank_size_) + 1].set(it->second );
+	} catch(...) {
+	  // maybe send the old state again
+	  ROS_INFO("couldn't set all channels");
+	  ledState_->returnToLastState();
+	  break;
+	}
+      }
+      ledUpdates_.clear();
     }
-  }
-  ledUpdates_.clear();
-
+  
 }
 void LedLayer::handleInit(LayerStatus &status) {
 
