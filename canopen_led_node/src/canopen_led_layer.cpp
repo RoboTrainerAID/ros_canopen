@@ -221,13 +221,14 @@ void LedLayer::handleRead(LayerStatus &status,
 }
 void LedLayer::handleWrite(LayerStatus &status,
 		const LayerState &current_state) {
-  //TODO mutex on ledUpdates?
-  //TODO add timers/count to reduce updaterate
+
     time_point current_time = boost::chrono::high_resolution_clock::now();
     
     if((current_time - last_update_) > step_) {
       last_update_ = current_time;
       //push updates
+      boost::mutex::scoped_lock lock(mutex_);
+      ROS_INFO("update");
       for(std::map<int, int>::iterator it = ledUpdates_.begin(); it!= ledUpdates_.end(); ++it) {
 	try {
 	  led_map[(it->first/bank_size_) + 1][(it->first%bank_size_) + 1].set(it->second );

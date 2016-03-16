@@ -3,13 +3,15 @@
 
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/chrono/system_clocks.hpp>
+
 #include <canopen_master/canopen.h>
 #include <canopen_401/base.h>
 #include <canopen_led_node/Led.h>
 #include <canopen_led_node/BankMapping.h>
 #include <canopen_led_node/GlobalMapping.h>
 
-#include <boost/chrono/system_clocks.hpp>
+
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -147,7 +149,7 @@ public:
 		  led_channels[led_channel] = value;
 		  led_channel_to_change.insert(std::pair<int, int>(led_channel, value));
 		}
-		std::cout << "return: " << led_channel_to_change.size() << std::endl;
+		//std::cout << "return: " << led_channel_to_change.size() << std::endl;
 		return led_channel_to_change;
 	}
 	
@@ -291,7 +293,7 @@ private:
  *
  * Define send functions
  *
- * Define some Topics:
+ * Define Topics:
  * - self test: The used Hardware should test the functionality
  * - banks and groups: used to control banks and groups
  * - global led enable: enable all leds ( if it isn't enabled you can't set new states)
@@ -302,7 +304,6 @@ class LedLayer: public canopen::Layer {
 	ros::NodeHandle nh_;
 	boost::shared_ptr<canopen::IoBase> base_;
 	const boost::shared_ptr<ObjectStorage> storage_;
-	//TODO const canopen::LedState *ledState_;
 	canopen::LedState *ledState_;
 
 	uint16_t leds_, banks_, bank_size_, groups_;
@@ -323,6 +324,7 @@ protected:
 	void selfTest(const std_msgs::Bool::ConstPtr& msg);
 
 private:
+	boost::mutex mutex_;
 	ros::Subscriber selfTest_sub_, set_led_sub_, writemultiplexedOut16_sub_,
 			globalBrightness_sub_, globalLedArrayEnable_sub_, bankMapping_sub_,
 			globalMapping_sub_;
@@ -350,6 +352,7 @@ private:
 	
 	//insert map to_change into ledUpdates with value update
 	void insertChanges(std::map<int, int> to_change) {
+	  boost::mutex::scoped_lock lock(mutex_);
 	  for (std::map<int, int>::iterator it=to_change.begin(); it!=to_change.end(); ++it){
 	    ledUpdates_[it->first] = it->second;
 	  } 
