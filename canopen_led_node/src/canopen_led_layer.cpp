@@ -75,7 +75,7 @@ void LedLayer::setLed(const canopen_led_node::Led::ConstPtr& msg) {
 		if (data_length == bank_size_) {
 			//direct mapping
 			std::vector<int> b_change_set(msg->data.begin(), msg->data.end());
-			insertChanges(ledState_->compareAndUpdate(bank, b_change_set));
+			insertChanges(ledState_->compareAndUpdate(bank - 1, b_change_set));
 		} else if (data_length == 1) {
 			if (led != 0) {
 				//set one led channel
@@ -164,9 +164,11 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		groups_ = (const int&) options["groups"];
 	else
 		groups_ = 0;
-	if (options.hasMember("step"))
-		step_ = (const boost::chrono::milliseconds&) options["step"];
-	else
+	if (options.hasMember("step")) {
+		int tmp = (const int&) options["step"];
+		step_ = boost::chrono::milliseconds(tmp);
+		//std::cout << "step: " << step_.count() << std::endl;
+	}else
 		step_ = boost::chrono::milliseconds(100);
 
 	// init the state object
@@ -223,12 +225,11 @@ void LedLayer::handleWrite(LayerStatus &status,
 		const LayerState &current_state) {
 
     time_point current_time = boost::chrono::high_resolution_clock::now();
-    
-    if((current_time - last_update_) > step_) {
+    if( (current_time - last_update_) > step_) {
       last_update_ = current_time;
       //push updates
       boost::mutex::scoped_lock lock(mutex_);
-      ROS_INFO("update");
+      //ROS_INFO("update");
       for(std::map<int, int>::iterator it = ledUpdates_.begin(); it!= ledUpdates_.end(); ++it) {
 	try {
 	  led_map[(it->first/bank_size_) + 1][(it->first%bank_size_) + 1].set(it->second );
