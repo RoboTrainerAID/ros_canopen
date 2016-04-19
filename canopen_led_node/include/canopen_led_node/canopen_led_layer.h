@@ -229,6 +229,7 @@ public:
 private:
 	int leds_, banks_, bank_size_, groups_;
 
+
 	// all led channels
 	std::vector<int> led_channels;
 	// all led channels
@@ -306,7 +307,7 @@ class LedLayer: public canopen::Layer {
 	const boost::shared_ptr<ObjectStorage> storage_;
 	canopen::LedState *ledState_;
 
-	uint16_t leds_, banks_, bank_size_, groups_;
+	uint16_t leds_, banks_, bank_size_, groups_, conf_id_;
 	canopen::ObjectStorage::Entry<int8_t> selfTest_;
 	canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_,
 			bankBrightness_, groupBrightness_, nodeID_;
