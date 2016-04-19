@@ -148,10 +148,15 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		Layer(name + " Handle"), base_(base), storage_(storage), nh_(nh) {
 	
 	if (options.hasMember("id")) {
-		conf_id_ = (const int&) options["id"];
+	  
+		int id = (const int&) options["id"];
+		char buff[100];
+		sprintf(buff, "%d" ,id);
+		conf_id_ = buff;
+		//ROS_INFO("id: " + conf_id_.c_str());
 	} else {
 		//id has to be set in config
-		conf_id_ = 0;
+		conf_id_ = "0";
 	}
 		  
 	//number of leds (multiplied by 3 for RGB)
@@ -212,16 +217,16 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 	}
 
 	//setup callbacks
-	selfTest_sub_ = nh.subscribe( conf_id_ +  "_selftest", 100, &LedLayer::selfTest, this);
-	set_led_sub_ = nh.subscribe(conf_id_ +  "_set_led", 100, &LedLayer::setLed, this);
-	globalBrightness_sub_ = nh.subscribe(conf_id_ +  "_global_brightness", 100,
+	selfTest_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_selftest", 100, &LedLayer::selfTest, this);
+	set_led_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_set_led", 100, &LedLayer::setLed, this);
+	globalBrightness_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_global_brightness", 100,
 			&LedLayer::setGlobalBrightness, this);
-	globalLedArrayEnable_sub_ = nh.subscribe(conf_id_ +  "_globalLedsEnable", 100,
+	globalLedArrayEnable_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_globalLedsEnable", 100,
 			&LedLayer::globalLedArrayEnable, this);
 	//writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1, &LedLayer::writemultiplexedOut16, this);
 	
-	bankMapping_sub_ = nh.subscribe(conf_id_ +  "_bank_mapping", 100, &LedLayer::setBankMapping, this);;
-	globalMapping_sub_ = nh.subscribe(conf_id_ +  "_global_mapping", 100, &LedLayer::setGlobalMapping, this);;
+	bankMapping_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_bank_mapping", 100, &LedLayer::setBankMapping, this);;
+	globalMapping_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_global_mapping", 100, &LedLayer::setGlobalMapping, this);;
 }
 
 void LedLayer::handleRead(LayerStatus &status,

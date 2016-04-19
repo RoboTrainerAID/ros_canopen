@@ -10,8 +10,8 @@ int main(int argc, char **argv)
   bool extend = false;
   ros::init(argc, argv, "led_test");
   ros::NodeHandle n;
-  ros::Publisher setLed_pub = n.advertise<canopen_led_node::Led>("/set_led", 10);
-  ros::Publisher writeDigi = n.advertise<std_msgs::UInt8>("/writeDigitalOut8", 10);
+  ros::Publisher setLed_pub = n.advertise<canopen_led_node::Led>("/CANopen_2_set_led", 10);
+  //ros::Publisher writeDigi = n.advertise<std_msgs::UInt8>("/writeDigitalOut8", 10);
   ros::Rate loop_rate(1);
   
   ros::spinOnce();    

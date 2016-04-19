@@ -307,7 +307,8 @@ class LedLayer: public canopen::Layer {
 	const boost::shared_ptr<ObjectStorage> storage_;
 	canopen::LedState *ledState_;
 
-	uint16_t leds_, banks_, bank_size_, groups_, conf_id_;
+	uint16_t leds_, banks_, bank_size_, groups_;
+	std::string conf_id_;
 	canopen::ObjectStorage::Entry<int8_t> selfTest_;
 	canopen::ObjectStorage::Entry<uint8_t> globalLedArrayEnable_,
 			bankBrightness_, groupBrightness_, nodeID_;
