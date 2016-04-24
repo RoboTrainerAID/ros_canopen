@@ -130,17 +130,6 @@ void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
 	}
 }
 
-void LedLayer::writemultiplexedOut16(
-		const canopen_led_node::Led::ConstPtr& msg) {
-	int led = msg->led;
-	int data_length = msg->data.size();
-	if (data_length == 1) {
-		set(channelMultiplexer_, led);
-		set(outputValue_, msg->data[0]);
-	}
-	//doesn't change state, not supported atm
-}
-
 LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 		const boost::shared_ptr<IoBase> & base,
 		const boost::shared_ptr<ObjectStorage> storage,
@@ -194,8 +183,8 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 	storage->entry(bitrate_, 0x2001); // rw: CAN Bitrate (kbit): default=500
 	storage->entry(globalLedArrayEnable_, 0x2006); //
 	storage->entry(globalBrightness_, 0x2007); //
-	storage->entry(channelMultiplexer_, 0x2008, 1); //
-	storage->entry(outputValue_, 0x2008, 2); //
+	//storage->entry(channelMultiplexer_, 0x2008, 1);
+	//storage->entry(outputValue_, 0x2008, 2); //
 	storage->entry(selfTest_, 0x200A); //
 	storage->entry(bankBrightness_, 0x2100, 0); //
 	storage->entry(groupBrightness_, 0x2200, 0); //
@@ -223,7 +212,6 @@ LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
 			&LedLayer::setGlobalBrightness, this);
 	globalLedArrayEnable_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_globalLedsEnable", 100,
 			&LedLayer::globalLedArrayEnable, this);
-	//writemultiplexedOut16_sub_ = nh.subscribe("writemultiplexedOut16", 1, &LedLayer::writemultiplexedOut16, this);
 	
 	bankMapping_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_bank_mapping", 100, &LedLayer::setBankMapping, this);;
 	globalMapping_sub_ = nh.subscribe("CANopen_" + conf_id_ +  "_global_mapping", 100, &LedLayer::setGlobalMapping, this);;

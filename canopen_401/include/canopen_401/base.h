@@ -6,7 +6,7 @@
 namespace canopen {
 
 /**
- * Did we need this ? May we could use IO401 and call it IO401_base
+ * Base abstraction for ClassAllocator
  */
 class IoBase: public canopen::Layer {
 protected:
@@ -15,19 +15,6 @@ protected:
 	}
 public:
 
-	// unused
-	enum OperationMode {
-		Test = 0, Productive = 1,
-	};
-
-	// unused
-	virtual void registerDefaultModes(
-			boost::shared_ptr<ObjectStorage> storage) {
-	}
-
-	/**
-	 *
-	 */
 	class Allocator {
 	public:
 		virtual boost::shared_ptr<IoBase> allocate(const std::string &name,

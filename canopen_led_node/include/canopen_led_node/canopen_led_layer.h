@@ -32,6 +32,10 @@
 namespace canopen {
 typedef boost::chrono::high_resolution_clock::time_point time_point;
   
+/**
+ * Status class for led channels.
+ * Compare internal state with given new state to get differences for an update
+ */
 class LedState {
 
 public:
@@ -289,10 +293,8 @@ private:
 /**
  * class: LedLayer
  *
- * setup storage entries:
- * - ManufacturerObjects LED profile 401 (not the whole profile)
+ * setup storage entries for ManufacturerObjects of LED profile
  *
- * Define send functions
  *
  * Define Topics:
  * - self test: The used Hardware should test the functionality
@@ -317,7 +319,6 @@ class LedLayer: public canopen::Layer {
 	canopen::ObjectStorage::Entry<int16_t> outputValue_;
 
 protected:
-	void writemultiplexedOut16(const canopen_led_node::Led::ConstPtr& msg);
 	void setLed(const canopen_led_node::Led::ConstPtr& msg);
 	void setGlobalMapping(const canopen_led_node::GlobalMapping::ConstPtr& msg);
 	void setBankMapping(const canopen_led_node::BankMapping::ConstPtr& msg);
@@ -327,7 +328,7 @@ protected:
 
 private:
 	boost::mutex mutex_;
-	ros::Subscriber selfTest_sub_, set_led_sub_, writemultiplexedOut16_sub_,
+	ros::Subscriber selfTest_sub_, set_led_sub_,
 			globalBrightness_sub_, globalLedArrayEnable_sub_, bankMapping_sub_,
 			globalMapping_sub_;
 
@@ -375,7 +376,6 @@ private:
 
 
 public:
-	// dublicated
 	template<typename T> bool set(T & entry, const typename T::type &value) {
 		try {
 			entry.set(value);
@@ -390,164 +390,6 @@ public:
 			XmlRpc::XmlRpcValue & options);
 
 };
-
-/**
- * Status class for led channels
- *
- * set channels
- * set bank
- * set groups - not implemented
- *
- * Example
-	Banks: 4 Channels: 60 Bank size: 15 Groups2
-
-	compare and update with a all elements are zero, only channel 2 is set to 20
-	Map index: 2 => 20
-
-	print current state
-	Channel Index: 00 brightness: 0
-	Channel Index: 01 brightness: 20
-	Channel Index: 02 brightness: 0
-	Channel Index: 03 brightness: 0
-	Channel Index: 04 brightness: 0
-	Channel Index: 05 brightness: 0
-	Channel Index: 06 brightness: 0
-	Channel Index: 07 brightness: 0
-	Channel Index: 08 brightness: 0
-	Channel Index: 09 brightness: 0
-	Channel Index: 10 brightness: 0
-	Channel Index: 11 brightness: 0
-	Channel Index: 12 brightness: 0
-	Channel Index: 13 brightness: 0
-	Channel Index: 14 brightness: 0
-	Channel Index: 15 brightness: 0
-	Channel Index: 16 brightness: 0
-	Channel Index: 17 brightness: 0
-	Channel Index: 18 brightness: 0
-	Channel Index: 19 brightness: 0
-	Channel Index: 20 brightness: 0
-	Channel Index: 21 brightness: 0
-	Channel Index: 22 brightness: 0
-	Channel Index: 23 brightness: 0
-	Channel Index: 24 brightness: 0
-	Channel Index: 25 brightness: 0
-	Channel Index: 26 brightness: 0
-	Channel Index: 27 brightness: 0
-	Channel Index: 28 brightness: 0
-	Channel Index: 29 brightness: 0
-	Channel Index: 30 brightness: 0
-	Channel Index: 31 brightness: 0
-	Channel Index: 32 brightness: 0
-	Channel Index: 33 brightness: 0
-	Channel Index: 34 brightness: 0
-	Channel Index: 35 brightness: 0
-	Channel Index: 36 brightness: 0
-	Channel Index: 37 brightness: 0
-	Channel Index: 38 brightness: 0
-	Channel Index: 39 brightness: 0
-	Channel Index: 40 brightness: 0
-	Channel Index: 41 brightness: 0
-	Channel Index: 42 brightness: 0
-	Channel Index: 43 brightness: 0
-	Channel Index: 44 brightness: 0
-	Channel Index: 45 brightness: 0
-	Channel Index: 46 brightness: 0
-	Channel Index: 47 brightness: 0
-	Channel Index: 48 brightness: 0
-	Channel Index: 49 brightness: 0
-	Channel Index: 50 brightness: 0
-	Channel Index: 51 brightness: 0
-	Channel Index: 52 brightness: 0
-	Channel Index: 53 brightness: 0
-	Channel Index: 54 brightness: 0
-	Channel Index: 55 brightness: 0
-	Channel Index: 56 brightness: 0
-	Channel Index: 57 brightness: 0
-	Channel Index: 58 brightness: 0
-	Channel Index: 59 brightness: 0
-
-	compare and update with a bank 2 (all elements are 100)
-	Map Bank index: 16 => 100
-	Map Bank index: 17 => 100
-	Map Bank index: 18 => 100
-	Map Bank index: 19 => 100
-	Map Bank index: 20 => 100
-	Map Bank index: 21 => 100
-	Map Bank index: 22 => 100
-	Map Bank index: 23 => 100
-	Map Bank index: 24 => 100
-	Map Bank index: 25 => 100
-	Map Bank index: 26 => 100
-	Map Bank index: 27 => 100
-	Map Bank index: 28 => 100
-	Map Bank index: 29 => 100
-	Map Bank index: 30 => 100
-
-	print current state
-	Bank Channel Index: 0 brightness: 0
-	Bank Channel Index: 1 brightness: 20
-	Bank Channel Index: 2 brightness: 0
-	Bank Channel Index: 3 brightness: 0
-	Bank Channel Index: 4 brightness: 0
-	Bank Channel Index: 5 brightness: 0
-	Bank Channel Index: 6 brightness: 0
-	Bank Channel Index: 7 brightness: 0
-	Bank Channel Index: 8 brightness: 0
-	Bank Channel Index: 9 brightness: 0
-	Bank Channel Index: 10 brightness: 0
-	Bank Channel Index: 11 brightness: 0
-	Bank Channel Index: 12 brightness: 0
-	Bank Channel Index: 13 brightness: 0
-	Bank Channel Index: 14 brightness: 0
-	Bank Channel Index: 15 brightness: 100
-	Bank Channel Index: 16 brightness: 100
-	Bank Channel Index: 17 brightness: 100
-	Bank Channel Index: 18 brightness: 100
-	Bank Channel Index: 19 brightness: 100
-	Bank Channel Index: 20 brightness: 100
-	Bank Channel Index: 21 brightness: 100
-	Bank Channel Index: 22 brightness: 100
-	Bank Channel Index: 23 brightness: 100
-	Bank Channel Index: 24 brightness: 100
-	Bank Channel Index: 25 brightness: 100
-	Bank Channel Index: 26 brightness: 100
-	Bank Channel Index: 27 brightness: 100
-	Bank Channel Index: 28 brightness: 100
-	Bank Channel Index: 29 brightness: 100
-	Bank Channel Index: 30 brightness: 0
-	Bank Channel Index: 31 brightness: 0
-	Bank Channel Index: 32 brightness: 0
-	Bank Channel Index: 33 brightness: 0
-	Bank Channel Index: 34 brightness: 0
-	Bank Channel Index: 35 brightness: 0
-	Bank Channel Index: 36 brightness: 0
-	Bank Channel Index: 37 brightness: 0
-	Bank Channel Index: 38 brightness: 0
-	Bank Channel Index: 39 brightness: 0
-	Bank Channel Index: 40 brightness: 0
-	Bank Channel Index: 41 brightness: 0
-	Bank Channel Index: 42 brightness: 0
-	Bank Channel Index: 43 brightness: 0
-	Bank Channel Index: 44 brightness: 0
-	Bank Channel Index: 45 brightness: 0
-	Bank Channel Index: 46 brightness: 0
-	Bank Channel Index: 47 brightness: 0
-	Bank Channel Index: 48 brightness: 0
-	Bank Channel Index: 49 brightness: 0
-	Bank Channel Index: 50 brightness: 0
-	Bank Channel Index: 51 brightness: 0
-	Bank Channel Index: 52 brightness: 0
-	Bank Channel Index: 53 brightness: 0
-	Bank Channel Index: 54 brightness: 0
-	Bank Channel Index: 55 brightness: 0
-	Bank Channel Index: 56 brightness: 0
-	Bank Channel Index: 57 brightness: 0
-	Bank Channel Index: 58 brightness: 0
-	Bank Channel Index: 59 brightness: 0
- *
- *
- */
-
 
 }// end canoopen namespace
 

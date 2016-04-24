@@ -22,11 +22,7 @@ namespace canopen {
 
 /**
  *
- * Define the default storage for the known LED CANopen profile
- *
- * Currently only the 401 profile is implemented
- *
- * Set some default Topics to handle with the node
+ * Define the default storage for the 401 profile
  *
  */
 class IO401: public IoBase {
@@ -66,10 +62,7 @@ public:
 		ros::NodeHandle n;
 		use_401_ = settings.get_optional<bool>("use_401", false);
 
-		if (!use_401_) {
-			ROS_INFO("Please use a known LED CanOpen Profile like 401");
-		}
-
+		
 		// Standard 401 Objects
 		storage->entry(DeviceType_, 0x1000); // ro: Device Type
 		storage->entry(ErrorRegister_, 0x1001); // ro: Error Register

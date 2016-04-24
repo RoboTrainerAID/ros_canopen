@@ -4,11 +4,13 @@ namespace canopen
 {  
 
 void IO401::writeAnalogOut16(const std_msgs::Int16::ConstPtr& msg) {
+    //not tested
     int16_t value_ = msg->data;
     set(writeAnalogOut16_, value_);   
 }
   
 void IO401::writeDigitalOut8(const std_msgs::UInt8::ConstPtr& msg) {
+    //not tested  
     uint8_t value_ = msg->data;
     set(writeDigitalOut8_, value_);   
 }
