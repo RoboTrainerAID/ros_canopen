@@ -3,6 +3,7 @@
 #include <canopen_chain_node/ros_chain.h>
 
 #include <canopen_motor_node/robot_layer.h>
+#include <canopen_motor_node/robot_layer_with_fts.h>
 
 using namespace can;
 using namespace canopen;
@@ -73,6 +74,13 @@ class MotorChain : public RosChain{
         logger->add(motor);
 
         boost::shared_ptr<HandleLayer> handle( new HandleLayer(joint, motor, node->getStorage(), params));
+
+        canopen::LayerStatus s;
+        if(!handle->prepareFilters(s)){
+            ROS_ERROR_STREAM(s.reason());
+            return false;
+        }
+
         robot_layer_->add(joint, handle);
         logger->add(handle);
 
@@ -82,15 +90,28 @@ class MotorChain : public RosChain{
 public:
     MotorChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), motor_allocator_("canopen_402", "canopen::MotorBase::Allocator"){}
 
-    virtual bool setup() {
+    virtual bool setup_chain() {
         motors_.reset( new LayerGroupNoDiag<MotorBase>("402 Layer"));
-        robot_layer_.reset( new RobotLayer(nh_));
-        cm_.reset(new ControllerManagerLayer(robot_layer_, nh_));
 
-        if(RosChain::setup()){
+        if(nh_.param("/arm/driver/use_fts", false)){
+            robot_layer_.reset( new RobotLayerWithFTS(nh_));
+        }else{
+            robot_layer_.reset( new RobotLayer(nh_));
+        }
+
+        ros::Duration dur(0.0) ;
+
+        if(RosChain::setup_chain()){
             add(motors_);
             add(robot_layer_);
 
+            if(!nh_.param("use_realtime_period", false)){
+                dur.fromSec(boost::chrono::duration<double>(update_duration_).count());
+                ROS_INFO_STREAM("Using fixed control period: " << dur);
+            }else{
+                ROS_INFO("Using real-time control period");
+            }
+            cm_.reset(new ControllerManagerLayer(robot_layer_, nh_, dur));
             add(cm_);
 
             return true;
@@ -101,8 +122,8 @@ public:
 };
 
 int main(int argc, char** argv){
-  ros::init(argc, argv, "canopen_chain_node_node");
-  ros::AsyncSpinner spinner(0);
+  ros::init(argc, argv, "canopen_motor_chain_node");
+  ros::AsyncSpinner spinner(4);
   spinner.start();
 
   ros::NodeHandle nh;
@@ -111,7 +132,7 @@ int main(int argc, char** argv){
   MotorChain chain(nh, nh_priv);
 
   if(!chain.setup()){
-      return -1;
+      return 1;
   }
 
   ros::waitForShutdown();

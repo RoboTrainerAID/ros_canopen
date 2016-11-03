@@ -5,11 +5,11 @@
 #include <canopen_master/can_layer.h>
 #include <socketcan_interface/string.h>
 #include <ros/ros.h>
-#include <ros/package.h>
 #include <std_srvs/Trigger.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/weak_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <pluginlib/class_loader.h>
 
 namespace canopen{
@@ -194,9 +194,10 @@ protected:
     bool setup_nodes();
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger);
     void report_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
+    virtual bool setup_chain();
 public:
     RosChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv);
-    virtual bool setup();
+    bool setup();
     virtual ~RosChain();
 };
 

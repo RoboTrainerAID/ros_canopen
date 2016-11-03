@@ -1,3 +1,4 @@
+#include <ros/package.h>
 
 #include <canopen_chain_node/ros_chain.h>
 
@@ -219,7 +220,7 @@ bool RosChain::setup_bus(){
         return false;
     }
 
-    bus_nh.param("master_allocator",master_alloc, std::string("canopen::LocalMaster::Allocator"));
+    bus_nh.param("master_allocator",master_alloc, std::string("canopen::SimpleMaster::Allocator"));
 
     try{
         master_= master_allocator_.allocateInstance(master_alloc, can_device, interface_);
@@ -469,7 +470,10 @@ RosChain::RosChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv)
 
 bool RosChain::setup(){
     boost::mutex::scoped_lock lock(mutex_);
+    return setup_chain();
+}
 
+bool RosChain::setup_chain(){
     std::string hw_id;
     nh_priv_.param("hardware_id", hw_id, std::string("none"));
 

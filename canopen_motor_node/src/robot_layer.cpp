@@ -1,5 +1,3 @@
-
-
 #include <joint_limits_interface/joint_limits.h>
 #include <joint_limits_interface/joint_limits_urdf.h>
 #include <joint_limits_interface/joint_limits_rosparam.h>
@@ -8,7 +6,6 @@
 #include <controller_manager_msgs/SwitchController.h>
 
 #include <canopen_motor_node/robot_layer.h>
-
 using namespace canopen;
 
 UnitConverter::UnitConverter(const std::string &expression, get_var_func_type var_func)
@@ -53,7 +50,10 @@ bool HandleLayer::select(const MotorBase::OperationMode &m){
 }
 
 HandleLayer::HandleLayer(const std::string &name, const boost::shared_ptr<MotorBase> & motor, const boost::shared_ptr<ObjectStorage> storage,  XmlRpc::XmlRpcValue & options)
-: Layer(name + " Handle"), motor_(motor), variables_(storage), jsh_(name, &pos_, &vel_, &eff_), jph_(jsh_, &cmd_pos_), jvh_(jsh_, &cmd_vel_), jeh_(jsh_, &cmd_eff_), jh_(0) {
+: Layer(name + " Handle"), motor_(motor), variables_(storage), jsh_(name, &pos_, &vel_, &eff_), jph_(jsh_, &cmd_pos_), jvh_(jsh_, &cmd_vel_), jeh_(jsh_, &cmd_eff_), jh_(0), forward_command_(false),
+  filter_pos_("double"), filter_vel_("double"), filter_eff_("double"), options_(options)
+{
+
    commands_[MotorBase::No_Mode] = 0;
 
    std::string p2d("rint(rad2deg(pos)*1000)"), v2d("rint(rad2deg(vel)*1000)"), e2d("rint(eff)");
@@ -97,6 +97,7 @@ HandleLayer::CanSwitchResult HandleLayer::canSwitch(const MotorBase::OperationMo
 
 bool HandleLayer::switchMode(const MotorBase::OperationMode &m){
     if(motor_->getMode() != m){
+        forward_command_ = false;
         jh_ = 0; // disconnect handle
         if(!motor_->enterModeAndWait(m)){
             ROS_ERROR_STREAM(jsh_.getName() << "could not enter mode " << (int)m);
@@ -107,6 +108,15 @@ bool HandleLayer::switchMode(const MotorBase::OperationMode &m){
     }
     return select(m);
 }
+
+bool HandleLayer::forwardForMode(const MotorBase::OperationMode &m){
+    if(motor_->getMode() == m){
+        forward_command_ = true;
+        return true;
+    }
+    return false;
+}
+
 
 hardware_interface::JointHandle* HandleLayer::registerHandle(hardware_interface::PositionJointInterface &iface){
     std::vector<MotorBase::OperationMode> modes;
@@ -134,14 +144,16 @@ hardware_interface::JointHandle* HandleLayer::registerHandle(hardware_interface:
 void HandleLayer::handleRead(LayerStatus &status, const LayerState &current_state) {
     if(current_state > Shutdown){
         variables_.sync();
-        pos_ = conv_pos_->evaluate();
-        vel_ = conv_vel_->evaluate();
-        eff_ = conv_eff_->evaluate();
+        filter_pos_.update(conv_pos_->evaluate(), pos_);
+        filter_vel_.update(conv_vel_->evaluate(), vel_);
+        filter_eff_.update(conv_eff_->evaluate(), eff_);
     }
 }
 void HandleLayer::handleWrite(LayerStatus &status, const LayerState &current_state) {
     if(current_state == Ready){
-        hardware_interface::JointHandle* jh = jh_;
+        hardware_interface::JointHandle* jh = 0;
+        if(forward_command_) jh = jh_;
+        
         if(jh == &jph_){
             motor_->setTarget(conv_target_pos_->evaluate());
             cmd_vel_ = vel_;
@@ -162,6 +174,25 @@ void HandleLayer::handleWrite(LayerStatus &status, const LayerState &current_sta
         }
     }
 }
+
+bool prepareFilter(const std::string& joint_name, const std::string& filter_name,  filters::FilterChain<double> &filter, XmlRpc::XmlRpcValue & options, canopen::LayerStatus &status){
+    filter.clear();
+    if(options.hasMember(filter_name)){
+        if(!filter.configure(options[filter_name],joint_name + "/" + filter_name)){
+            status.error("could not configure " + filter_name+ " for " + joint_name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool HandleLayer::prepareFilters(canopen::LayerStatus &status){
+    return prepareFilter(jsh_.getName(), "position_filters", filter_pos_, options_, status) &&
+       prepareFilter(jsh_.getName(), "velocity_filters", filter_vel_, options_, status) &&
+       prepareFilter(jsh_.getName(), "effort_filters", filter_eff_, options_, status);
+}
+
 void HandleLayer::handleInit(LayerStatus &status){
     // TODO: implement proper init
     conv_pos_->reset();
@@ -170,7 +201,12 @@ void HandleLayer::handleInit(LayerStatus &status){
     conv_target_pos_->reset();
     conv_target_vel_->reset();
     conv_target_eff_->reset();
-    handleRead(status, Layer::Ready);
+
+
+    if(prepareFilters(status))
+    {
+        handleRead(status, Layer::Ready);
+    }
 }
 
 
@@ -190,11 +226,12 @@ void RobotLayer::add(const std::string &name, boost::shared_ptr<HandleLayer> han
 
 RobotLayer::RobotLayer(ros::NodeHandle nh) : LayerGroupNoDiag<HandleLayer>("RobotLayer"), nh_(nh), first_init_(true)
 {
+    ROS_INFO("RobotLayer Constructor");
+
     registerInterface(&state_interface_);
     registerInterface(&pos_interface_);
     registerInterface(&vel_interface_);
     registerInterface(&eff_interface_);
-
 
     registerInterface(&pos_saturation_interface_);
     registerInterface(&pos_soft_limits_interface_);
@@ -207,6 +244,7 @@ RobotLayer::RobotLayer(ros::NodeHandle nh) : LayerGroupNoDiag<HandleLayer>("Robo
 }
 
 void RobotLayer::handleInit(LayerStatus &status){
+    ROS_INFO("RobotLayer::handleInit");
     if(first_init_){
         for(HandleMap::iterator it = handles_.begin(); it != handles_.end(); ++it){
             joint_limits_interface::JointLimits limits;
@@ -260,7 +298,6 @@ void RobotLayer::handleInit(LayerStatus &status){
                     eff_soft_limits_interface_.registerHandle(softhandle);
                 }
             }
-
         }
         first_init_ = false;
     }
@@ -280,11 +317,9 @@ void RobotLayer::enforce(const ros::Duration &period, bool reset){
     eff_soft_limits_interface_.enforceLimits(period);
 }
 
-bool RobotLayer::canSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) const {
-
+bool RobotLayer::prepareSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) {
     // compile-time check for mode switching support in ros_control
-    // if the following line fails, please upgrade to ros_control/contoller_manager 0.9.2 or newer
-    (void) &hardware_interface::RobotHW::canSwitch;
+    (void) &hardware_interface::RobotHW::prepareSwitch; // please upgrade to ros_control/contoller_manager 0.9.4 or newer
 
     // stop handles
     for (std::list<hardware_interface::ControllerInfo>::const_iterator controller_it = stop_list.begin(); controller_it != stop_list.end(); ++controller_it){
@@ -325,10 +360,8 @@ bool RobotLayer::canSwitch(const std::list<hardware_interface::ControllerInfo> &
         }
         switch_map_.insert(std::make_pair(controller_it->name, to_switch));
     }
-    return true;
-}
 
-void RobotLayer::doSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) {
+    // perform mode switches
     boost::unordered_set<boost::shared_ptr<HandleLayer> > to_stop;
     std::vector<std::string> failed_controllers;
     for (std::list<hardware_interface::ControllerInfo>::const_iterator controller_it = stop_list.begin(); controller_it != stop_list.end(); ++controller_it){
@@ -339,6 +372,10 @@ void RobotLayer::doSwitch(const std::list<hardware_interface::ControllerInfo> &s
     }
     for (std::list<hardware_interface::ControllerInfo>::const_iterator controller_it = start_list.begin(); controller_it != start_list.end(); ++controller_it){
         SwitchContainer &to_switch = switch_map_.at(controller_it->name);
+        bool okay = true;
+        for(RobotLayer::SwitchContainer::iterator it = to_switch.begin(); it != to_switch.end(); ++it){
+            it->first->switchMode(MotorBase::No_Mode); // stop all
+        }
         for(RobotLayer::SwitchContainer::iterator it = to_switch.begin(); it != to_switch.end(); ++it){
             if(!it->first->switchMode(it->second)){
                 failed_controllers.push_back(controller_it->name);
@@ -346,6 +383,7 @@ void RobotLayer::doSwitch(const std::list<hardware_interface::ControllerInfo> &s
                 for(RobotLayer::SwitchContainer::iterator stop_it = to_switch.begin(); stop_it != to_switch.end(); ++stop_it){
                     to_stop.insert(stop_it->first);
                 }
+                okay = false;
                 break;
             }
             to_stop.erase(it->first);
@@ -354,7 +392,38 @@ void RobotLayer::doSwitch(const std::list<hardware_interface::ControllerInfo> &s
     for(boost::unordered_set<boost::shared_ptr<HandleLayer> >::iterator it = to_stop.begin(); it != to_stop.end(); ++it){
         (*it)->switchMode(MotorBase::No_Mode);
     }
-    if(!failed_controllers.empty()) stopControllers(failed_controllers);
+    if(!failed_controllers.empty()){
+        stopControllers(failed_controllers);
+        // will not return false here since this would prevent other controllers to be started and therefore lead to an inconsistent state
+    }
+
+    return true;
+}
+
+void RobotLayer::doSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) {
+    std::vector<std::string> failed_controllers;
+    for (std::list<hardware_interface::ControllerInfo>::const_iterator controller_it = start_list.begin(); controller_it != start_list.end(); ++controller_it){
+        try{
+            SwitchContainer &to_switch = switch_map_.at(controller_it->name);
+            for(RobotLayer::SwitchContainer::iterator it = to_switch.begin(); it != to_switch.end(); ++it){
+                if(!it->first->forwardForMode(it->second)){
+                    failed_controllers.push_back(controller_it->name);
+                    ROS_ERROR_STREAM("Could not switch one joint for " << controller_it->name << ", will stop all related joints and the controller.");
+                    for(RobotLayer::SwitchContainer::iterator stop_it = to_switch.begin(); stop_it != to_switch.end(); ++stop_it){
+                        it->first->switchMode(MotorBase::No_Mode);
+                    }
+                    break;
+                }
+            }
+
+        }catch(const std::out_of_range&){
+            ROS_ERROR_STREAM("Conttroller " << controller_it->name << "not found, will stop it");
+            failed_controllers.push_back(controller_it->name);
+        }
+    }
+    if(!failed_controllers.empty()){
+        stopControllers(failed_controllers);
+    }
 }
 
 
@@ -372,7 +441,12 @@ void ControllerManagerLayer::handleWrite(canopen::LayerStatus &status, const Lay
             canopen::time_point abs_now = canopen::get_abs_time();
             ros::Time now = ros::Time::now();
 
-            ros::Duration period(boost::chrono::duration<double>(abs_now -last_time_).count());
+            ros::Duration period = fixed_period_;
+
+            if(period.isZero()) {
+                period.fromSec(boost::chrono::duration<double>(abs_now -last_time_).count());
+            }
+
             last_time_ = abs_now;
 
             bool recover = recover_.exchange(false);
@@ -387,6 +461,7 @@ void ControllerManagerLayer::handleInit(canopen::LayerStatus &status) {
         status.warn("controller_manager is already intialized");
     }else{
         recover_ = true;
+        last_time_ = canopen::get_abs_time();
         cm_.reset(new controller_manager::ControllerManager(robot_.get(), nh_));
     }
 }

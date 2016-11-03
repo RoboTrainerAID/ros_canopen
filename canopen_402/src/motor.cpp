@@ -372,10 +372,11 @@ bool Motor402::switchState(LayerStatus &status, const State402::InternalState &t
     return state == target;
 }
 
-bool Motor402::readState(LayerStatus &status){
-    uint16_t sw = status_word_entry_.get(); // TODO: added error handling
-    status_word_ = sw;
-    State402::InternalState state = state_handler_.read(sw);
+bool Motor402::readState(LayerStatus &status, const LayerState &current_state){
+    uint16_t old_sw, sw = status_word_entry_.get(); // TODO: added error handling
+    old_sw = status_word_.exchange(sw);
+
+    state_handler_.read(sw);
 
     boost::mutex::scoped_lock lock(mode_mutex_);
     uint16_t new_mode = monitor_mode_ ? op_mode_display_.get() : op_mode_display_.get_cached();
@@ -392,14 +393,18 @@ bool Motor402::readState(LayerStatus &status){
         status.warn("mode does not match");
     }
     if(sw & (1<<State402::SW_Internal_limit)){
-        status.error("Internal limit active");
+        if(old_sw & (1<<State402::SW_Internal_limit) || current_state != Ready){
+            status.warn("Internal limit active");
+        }else{
+            status.error("Internal limit active");
+        }
     }
 
     return true;
 }
 void Motor402::handleRead(LayerStatus &status, const LayerState &current_state){
     if(current_state > Off){
-        readState(status);
+        readState(status, current_state);
     }
 }
 void Motor402::handleWrite(LayerStatus &status, const LayerState &current_state){
@@ -420,9 +425,9 @@ void Motor402::handleWrite(LayerStatus &status, const LayerState &current_state)
             }
         }
         if(start_fault_reset_.exchange(false)){
-            control_word_entry_.set(control_word_ & ~(1<<Command402::CW_Fault_Reset));
+            control_word_entry_.set_cached(control_word_ & ~(1<<Command402::CW_Fault_Reset));
         }else{
-            control_word_entry_.set(control_word_);
+            control_word_entry_.set_cached(control_word_);
         }
     }
 }
@@ -464,7 +469,7 @@ void Motor402::handleInit(LayerStatus &status){
         (it->second)();
     }
 
-    if(!readState(status)){
+    if(!readState(status, Init)){
         status.error("Could not read motor state");
         return;
     }

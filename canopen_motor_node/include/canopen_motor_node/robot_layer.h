@@ -8,7 +8,7 @@
 #include <joint_limits_interface/joint_limits_interface.h>
 #include <urdf/model.h>
 #include <canopen_402/base.h>
-
+#include <filters/filter_chain.h>
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 
@@ -125,9 +125,14 @@ class HandleLayer: public canopen::Layer{
     boost::scoped_ptr<UnitConverter>  conv_target_pos_, conv_target_vel_, conv_target_eff_;
     boost::scoped_ptr<UnitConverter>  conv_pos_, conv_vel_, conv_eff_;
 
+    filters::FilterChain<double> filter_pos_, filter_vel_, filter_eff_;
+    XmlRpc::XmlRpcValue options_;
+
     hardware_interface::JointStateHandle jsh_;
     hardware_interface::JointHandle jph_, jvh_, jeh_;
+
     boost::atomic<hardware_interface::JointHandle*> jh_;
+    boost::atomic<bool> forward_command_;
 
     typedef boost::unordered_map< canopen::MotorBase::OperationMode,hardware_interface::JointHandle* > CommandMap;
     CommandMap commands_;
@@ -164,6 +169,7 @@ public:
 
     CanSwitchResult canSwitch(const canopen::MotorBase::OperationMode &m);
     bool switchMode(const canopen::MotorBase::OperationMode &m);
+    bool forwardForMode(const canopen::MotorBase::OperationMode &m);
 
     void registerHandle(hardware_interface::JointStateInterface &iface){
         iface.registerHandle(jsh_);
@@ -171,6 +177,8 @@ public:
     hardware_interface::JointHandle* registerHandle(hardware_interface::PositionJointInterface &iface);
     hardware_interface::JointHandle* registerHandle(hardware_interface::VelocityJointInterface &iface);
     hardware_interface::JointHandle* registerHandle(hardware_interface::EffortJointInterface &iface);
+
+    bool prepareFilters(canopen::LayerStatus &status);
 
 private:
     virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
@@ -186,11 +194,13 @@ private:
 
 
 class RobotLayer : public canopen::LayerGroupNoDiag<HandleLayer>, public hardware_interface::RobotHW{
+protected:
     hardware_interface::JointStateInterface state_interface_;
     hardware_interface::PositionJointInterface pos_interface_;
     hardware_interface::VelocityJointInterface vel_interface_;
     hardware_interface::EffortJointInterface eff_interface_;
 
+private:
     joint_limits_interface::PositionJointSoftLimitsInterface pos_soft_limits_interface_;
     joint_limits_interface::PositionJointSaturationInterface pos_saturation_interface_;
     joint_limits_interface::VelocityJointSoftLimitsInterface vel_soft_limits_interface_;
@@ -205,7 +215,7 @@ class RobotLayer : public canopen::LayerGroupNoDiag<HandleLayer>, public hardwar
     HandleMap handles_;
     typedef std::vector<std::pair<boost::shared_ptr<HandleLayer>, canopen::MotorBase::OperationMode> >  SwitchContainer;
     typedef boost::unordered_map<std::string, SwitchContainer>  SwitchMap;
-    mutable SwitchMap switch_map_;
+    SwitchMap switch_map_;
 
     boost::atomic<bool> first_init_;
 
@@ -217,7 +227,7 @@ public:
 
     virtual void handleInit(canopen::LayerStatus &status);
     void enforce(const ros::Duration &period, bool reset);
-    virtual bool canSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) const;
+    virtual bool prepareSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list);
     virtual void doSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list);
 };
 
@@ -229,10 +239,11 @@ class ControllerManagerLayer : public canopen::Layer {
 
     canopen::time_point last_time_;
     boost::atomic<bool> recover_;
+    const ros::Duration fixed_period_;
 
 public:
-    ControllerManagerLayer(const boost::shared_ptr<RobotLayer> robot, const ros::NodeHandle &nh)
-    :Layer("ControllerManager"), robot_(robot), nh_(nh) {
+    ControllerManagerLayer(const boost::shared_ptr<RobotLayer> robot, const ros::NodeHandle &nh, const ros::Duration &fixed_period)
+    :Layer("ControllerManager"), robot_(robot), nh_(nh), fixed_period_(fixed_period) {
     }
 
     virtual void handleRead(canopen::LayerStatus &status, const LayerState &current_state);
