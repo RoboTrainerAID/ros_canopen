@@ -123,7 +123,7 @@ public:
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "canopen_motor_chain_node");
-  ros::AsyncSpinner spinner(4);
+  ros::AsyncSpinner spinner(0);
   spinner.start();
 
   ros::NodeHandle nh;

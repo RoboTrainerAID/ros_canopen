@@ -53,7 +53,6 @@ HandleLayer::HandleLayer(const std::string &name, const boost::shared_ptr<MotorB
 : Layer(name + " Handle"), motor_(motor), variables_(storage), jsh_(name, &pos_, &vel_, &eff_), jph_(jsh_, &cmd_pos_), jvh_(jsh_, &cmd_vel_), jeh_(jsh_, &cmd_eff_), jh_(0), forward_command_(false),
   filter_pos_("double"), filter_vel_("double"), filter_eff_("double"), options_(options)
 {
-
    commands_[MotorBase::No_Mode] = 0;
 
    std::string p2d("rint(rad2deg(pos)*1000)"), v2d("rint(rad2deg(vel)*1000)"), e2d("rint(eff)");
