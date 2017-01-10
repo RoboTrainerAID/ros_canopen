@@ -225,8 +225,6 @@ void RobotLayer::add(const std::string &name, boost::shared_ptr<HandleLayer> han
 
 RobotLayer::RobotLayer(ros::NodeHandle nh) : LayerGroupNoDiag<HandleLayer>("RobotLayer"), nh_(nh), first_init_(true)
 {
-    ROS_INFO("RobotLayer Constructor");
-
     registerInterface(&state_interface_);
     registerInterface(&pos_interface_);
     registerInterface(&vel_interface_);
@@ -243,7 +241,6 @@ RobotLayer::RobotLayer(ros::NodeHandle nh) : LayerGroupNoDiag<HandleLayer>("Robo
 }
 
 void RobotLayer::handleInit(LayerStatus &status){
-    ROS_INFO("RobotLayer::handleInit");
     if(first_init_){
         for(HandleMap::iterator it = handles_.begin(); it != handles_.end(); ++it){
             joint_limits_interface::JointLimits limits;

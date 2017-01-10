@@ -4,16 +4,12 @@
 
 RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
 {
-    ROS_INFO("RobotLayerWithFTS Constructor");
-
-    nh.param<std::string>(nh.getNamespace() + "/FTS/fts_name", fts_name, "fts_sensor_name");
-    nh.param<std::string>(nh.getNamespace() + "/node/transform_frame", fts_transform_frame, "frame");
+    nh.param<std::string>("FTS/name", fts_name, "fts_sensor_name");
+    nh.param<std::string>("Node/transform_frame", fts_transform_frame, "fts_frame");
     registerInterface(&super_interface_);
-
 }
 
 void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
-    ROS_INFO("RobotLayerWithFTS::handleInit");
     RobotLayer::handleInit(status);
 
     ftsh_ = new ForceTorqueSensorHandle(nh_, fts_name, fts_transform_frame);
