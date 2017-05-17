@@ -1,4 +1,3 @@
-
 #include <canopen_motor_node/motor_chain.h>
 #include <canopen_motor_node/handle_layer.h>
 
@@ -81,7 +80,8 @@ bool MotorChain::nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<
 
 bool MotorChain::setup_chain() {
     motors_.reset(new LayerGroupNoDiag<MotorBase>("402 Layer"));
-    robot_layer_.reset(new RobotLayer(nh_));
+//    robot_layer_.reset(new RobotLayer(nh_));
+    robot_layer_.reset(new RobotLayerWithFTS(nh_));
 
     ros::Duration dur(0.0) ;
 

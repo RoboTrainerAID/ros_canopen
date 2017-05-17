@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
     controller_manager
     controller_manager_msgs
     filters
+    ati_force_torque
     hardware_interface
     joint_limits_interface
     joint_limits_interface
@@ -29,6 +30,7 @@ catkin_package(
     canopen_motor
   CATKIN_DEPENDS
     canopen_402
+    ati_force_torque
     canopen_chain_node
     controller_manager
     hardware_interface
@@ -51,6 +53,7 @@ add_library(canopen_motor
   src/handle_layer.cpp
   src/motor_chain.cpp
   src/robot_layer.cpp
+  src/robot_layer_with_fts.cpp
 )
 target_link_libraries(canopen_motor
   ${catkin_LIBRARIES}
