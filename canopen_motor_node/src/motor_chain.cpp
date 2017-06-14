@@ -79,10 +79,11 @@ bool MotorChain::nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<
 }
 
 bool MotorChain::setup_chain() {
+    bool use_fts=false;
     motors_.reset(new LayerGroupNoDiag<MotorBase>("402 Layer"));
-//    robot_layer_.reset(new RobotLayer(nh_));
-    robot_layer_.reset(new RobotLayerWithFTS(nh_));
-
+    nh_.param<bool>("twist_controller/use_fts", use_fts, false);
+    if(use_fts) robot_layer_.reset(new RobotLayerWithFTS(nh_));
+    else robot_layer_.reset(new RobotLayer(nh_));
     ros::Duration dur(0.0) ;
 
     if(RosChain::setup_chain()){

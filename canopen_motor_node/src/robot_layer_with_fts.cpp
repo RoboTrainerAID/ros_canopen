@@ -4,8 +4,8 @@
 using namespace canopen;
 RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
 {
-    nh.param<std::string>("FTS/name", fts_name, "fts_sensor_name");
-    nh.param<std::string>("Node/transform_frame", fts_transform_frame, "fts_frame");
+    nh.param<std::string>("FTS/name", fts_name, "ATI_45_Mini");
+    nh.param<std::string>("Node/transform_frame", fts_transform_frame, "fts_transform_frame");
 
     registerInterface(&ft_interface_);
 }
