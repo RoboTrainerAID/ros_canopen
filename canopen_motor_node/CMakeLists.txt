@@ -41,10 +41,8 @@ add_executable(canopen_motor_node
 )
 
 target_link_libraries(canopen_motor_node
-  ati_force_torque
   ${catkin_LIBRARIES}
   ${MUPARSER_LIBRARIES}
-  force_controllers
 )
 add_dependencies(canopen_motor_node
   ${catkin_EXPORTED_TARGETS}
