@@ -26,6 +26,7 @@ Changelog for package canopen_motor_node
   this prevents a race condition, it is not needed anyway.
 * protect ObjectVariables with mutex
 * added test for norm function
+
 * fix for joint limit handling
 * introduced per-controller enforce_limits parameter
 * implemented per-joint limits handling
@@ -39,6 +40,7 @@ Changelog for package canopen_motor_node
 * multi-mode controllers are not supported (`#197 <https://github.com/ros-industrial/ros_canopen/issues/197>`_)
 * Adaption to https://github.com/ros-controls/ros_control/commit/afaf9403d1daf6e7f0a93e4a06aa9695e2883632
 * Contributors: Mathias Lüdtke, Michael Stoll
+
 
 0.6.5 (2016-12-10)
 ------------------

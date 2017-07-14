@@ -7,11 +7,14 @@ find_package(catkin REQUIRED
     canopen_chain_node
     controller_manager
     controller_manager_msgs
+    control_toolbox
     filters
     hardware_interface
     joint_limits_interface
     joint_limits_interface
     urdf
+    ati_force_torque
+    force_controllers
 )
 
 find_package(Boost REQUIRED
@@ -51,6 +54,7 @@ add_library(canopen_motor
   src/handle_layer.cpp
   src/motor_chain.cpp
   src/robot_layer.cpp
+  src/robot_layer_with_fts.cpp
 )
 target_link_libraries(canopen_motor
   ${catkin_LIBRARIES}
@@ -64,9 +68,13 @@ add_dependencies(canopen_motor
 add_executable(canopen_motor_node
   src/canopen_motor_chain_node.cpp
 )
+
 target_link_libraries(canopen_motor_node
   canopen_motor
   ${catkin_LIBRARIES}
+)
+add_dependencies(canopen_motor_node
+  ${catkin_EXPORTED_TARGETS}
 )
 add_dependencies(canopen_motor_node
   ${catkin_EXPORTED_TARGETS}
@@ -81,6 +89,7 @@ install(
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+<<<<<<< HEAD
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
@@ -92,6 +101,14 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(${PROJECT_NAME}-test_muparser
     canopen_motor
+=======
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(${PROJECT_NAME}-test_muparser
+    test/test_muparser.cpp
+    src/robot_layer.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}-test_muparser
+>>>>>>> robot-with-fts
     ${catkin_LIBRARIES}
     ${MUPARSER_LIBRARIES}
   )

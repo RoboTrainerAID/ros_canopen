@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <arg name="config" default="$(find canopen_led_node)/test/config/canopen_led_rig1.yaml"/>
+  <node name="led_driver" pkg="canopen_led_node" type="canopen_led_node" output="screen" clear_params="true" launch-prefix="">
+    <rosparam command="load" file="$(find canopen_led_node)/test/config/can0.yaml" />
+    <rosparam command="load" file="$(arg config)" />
+  </node>
+</launch> 
