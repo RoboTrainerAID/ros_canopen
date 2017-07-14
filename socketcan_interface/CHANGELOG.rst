@@ -2,7 +2,6 @@
 Changelog for package socketcan_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 0.7.5 (2017-05-29)
 ------------------
 * fix rosdep dependency on kernel headers
@@ -18,14 +17,12 @@ Changelog for package socketcan_interface
 ------------------
 
 0.7.1 (2017-03-20)
-
 ------------------
 * stop CAN driver on read errors as well
 * expose socketcan handle
 * implemented BCMsocket
 * introduced BufferedReader::readUntil
 * Contributors: Mathias Lüdtke
-
 
 0.7.0 (2016-12-13)
 ------------------

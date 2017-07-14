@@ -54,7 +54,6 @@ add_library(canopen_motor
   src/handle_layer.cpp
   src/motor_chain.cpp
   src/robot_layer.cpp
-  src/robot_layer_with_fts.cpp
 )
 target_link_libraries(canopen_motor
   ${catkin_LIBRARIES}
@@ -89,7 +88,6 @@ install(
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-<<<<<<< HEAD
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
@@ -101,14 +99,6 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(${PROJECT_NAME}-test_muparser
     canopen_motor
-=======
-if(CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(${PROJECT_NAME}-test_muparser
-    test/test_muparser.cpp
-    src/robot_layer.cpp
-  )
-  target_link_libraries(${PROJECT_NAME}-test_muparser
->>>>>>> robot-with-fts
     ${catkin_LIBRARIES}
     ${MUPARSER_LIBRARIES}
   )
