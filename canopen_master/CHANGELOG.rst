@@ -2,6 +2,13 @@
 Changelog for package canopen_master
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.5 (2017-05-29)
+------------------
+* added EMCYHandler::resetErrors
+* added VectorHelper::callFunc
+  generalized call templates
+* Contributors: Mathias Lüdtke
+
 0.7.4 (2017-04-25)
 ------------------
 
