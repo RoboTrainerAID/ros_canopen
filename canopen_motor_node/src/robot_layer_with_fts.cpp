@@ -1,12 +1,10 @@
 #include <canopen_motor_node/robot_layer_with_fts.h>
-#include <canopen_motor_node/robot_layer.h>
-
 
 RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
 {
     nh.param<std::string>("FTS/name", fts_name, "fts_sensor_name");
     nh.param<std::string>("Node/transform_frame", fts_transform_frame, "fts_frame");
-    registerInterface(&super_interface_);
+    registerInterface(&fts_interface_);
 }
 
 void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
@@ -25,5 +23,5 @@ void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
     for(size_t i = 0; i < pos_names.size(); i ++)
         handle.addPosHandle(pos_interface_.getHandle(pos_names[i]));
 
-    super_interface_.registerHandle(handle);
+    fts_interface_.registerHandle(handle);
 }

@@ -25,6 +25,12 @@ find_package(Boost REQUIRED
 find_package(PkgConfig)
 pkg_check_modules (MUPARSER REQUIRED muparser)
 
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" Cpp11CompilerFlag)
+if (Cpp11CompilerFlag)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
 catkin_package(
   INCLUDE_DIRS
     include
@@ -54,6 +60,7 @@ add_library(canopen_motor
   src/handle_layer.cpp
   src/motor_chain.cpp
   src/robot_layer.cpp
+  src/robot_layer_with_fts.cpp
 )
 target_link_libraries(canopen_motor
   ${catkin_LIBRARIES}
