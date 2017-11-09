@@ -1,5 +1,5 @@
 <launch>
-  <arg name="yaml" value="$(find schunk_lwa4p)/config/arm_driver.yaml"/>
+  <arg name="yaml"/>
   <node name="canopen_chain" pkg="canopen_chain_node" type="canopen_chain_node" output="screen" clear_params="true">
     <rosparam command="load" file="$(arg yaml)" />
   </node>
