@@ -3,7 +3,8 @@
 
 #include <force_controllers/force_controller.h>
 
-#include <ati_force_torque/force_torque_sensor_handle.h>
+#include <force_torque_sensor/force_torque_sensor_handle.h>
+
 #include <canopen_motor_node/robot_layer.h>
 
 
@@ -12,7 +13,7 @@ using namespace canopen;
 class RobotLayerWithFTS : public RobotLayer
 {
     force_torque_control::ForceTorqueControllerInterface fts_interface_;
-    ForceTorqueSensorHandle* ftsh_;
+    force_torque_sensor::ForceTorqueSensorHandle* ftsh_;
     ros::NodeHandle nh_;
 
     std::string fts_name;

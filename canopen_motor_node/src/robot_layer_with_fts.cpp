@@ -10,7 +10,7 @@ RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
 void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
     RobotLayer::handleInit(status);
 
-    ftsh_ = new ForceTorqueSensorHandle(nh_, fts_name, fts_transform_frame);
+    ftsh_ = new force_torque_sensor::ForceTorqueSensorHandle(nh_, fts_name, fts_transform_frame);
 
     force_torque_control::ForceTorqueControllerHandle handle("ForceTorqueControllerHandle");
     handle.addHandle(*ftsh_);
