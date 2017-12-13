@@ -151,10 +151,10 @@ bool RobotLayer::prepareSwitch(const std::list<hardware_interface::ControllerInf
                         return false;
                     }
 
-                    if(g_interface_mapping.hasConflict(cres_it->hardware_interface, sd.mode)){
-                        ROS_ERROR_STREAM(cres_it->hardware_interface << " cannot be provided in mode " << sd.mode);
-                        return false;
-                    }
+//                     if(g_interface_mapping.hasConflict(cres_it->hardware_interface, sd.mode)){
+//                         ROS_ERROR_STREAM(cres_it->hardware_interface << " cannot be provided in mode " << sd.mode);
+//                         return false;
+//                     }
 
                     HandleLayerBase::CanSwitchResult res = h_it->second->canSwitch(sd.mode);
 
