@@ -17,11 +17,6 @@
     local-name: iirob_ik
     uri: https://gitlab.ipr.kit.edu/IIROB/iirob_ik.git
     version: master
-
-- git:
-    local-name: iirob_filters
-    uri: https://github.com/iirob/iirob_filters.git
-    version: kinetic-devel
     
 - git:
     local-name: ros_control
