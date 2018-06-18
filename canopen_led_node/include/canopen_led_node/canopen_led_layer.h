@@ -7,9 +7,9 @@
 
 #include <canopen_master/canopen.h>
 #include <canopen_401/base.h>
-#include <canopen_led_node/Led.h>
-#include <canopen_led_node/BankMapping.h>
-#include <canopen_led_node/GlobalMapping.h>
+//#include <canopen_led_node/Led.h>
+//#include <canopen_led_node/BankMapping.h>
+//#include <canopen_led_node/GlobalMapping.h>
 
 
 
