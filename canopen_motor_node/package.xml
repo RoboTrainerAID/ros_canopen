@@ -22,7 +22,7 @@
   <depend>filters</depend>
   <depend>hardware_interface</depend>
   <depend>joint_limits_interface</depend>
-  <depend>ati_force_torque</depend>
+  <depend>force_torque_sensor</depend>
   <depend>muparser</depend>
   <depend>urdf</depend>
 
