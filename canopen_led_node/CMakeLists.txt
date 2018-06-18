@@ -5,8 +5,11 @@ project(canopen_led_node)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  #canopen_401
   canopen_chain_node
+  canopen_401
+  #roscpp
+  std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -43,11 +46,12 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   Led.msg
+   BankMapping.msg 
+   GlobalMapping.msg 
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -64,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,8 +105,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES can_led_node
-#  CATKIN_DEPENDS canopen_401 canopen_chain_node
-#  DEPENDS system_lib
+  CATKIN_DEPENDS message_runtime
+  DEPENDS system_lib std_msgs
 )
 
 ###########
@@ -128,7 +132,7 @@ include_directories(
 # add_dependencies(can_led_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
- add_executable(can_led_node
+ add_executable(canopen_led_node
    src/canopen_led_layer.cpp
    src/led_chain_node.cpp
  )
@@ -138,7 +142,7 @@ include_directories(
 # add_dependencies(can_led_node_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(can_led_node
+target_link_libraries(canopen_led_node
   ${catkin_LIBRARIES}
 ) 
 
@@ -157,11 +161,11 @@ target_link_libraries(can_led_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS can_led_node can_led_node_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+ install(TARGETS canopen_led_node
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -181,11 +185,11 @@ target_link_libraries(can_led_node
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_can_led_node.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+add_executable(send_led_test test/src/send_led_test.cpp)
+target_link_libraries(send_led_test ${catkin_LIBRARIES})
+add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS})
 
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+add_executable(send test/src/send_script.cpp)
+target_link_libraries(send ${catkin_LIBRARIES})
+add_dependencies(send ${catkin_EXPORTED_TARGETS})
+

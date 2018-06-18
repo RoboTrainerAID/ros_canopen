@@ -29,60 +29,66 @@ private:
 };
 
 class LedChain : public RosChain{
-  ClassAllocator<canopen::LedBase> led_allocator_;
-  boost::shared_ptr< LayerGroupNoDiag<LedBase> > leds_;
-  // boost::shared_ptr<LedLayer> led_layer_;
+  ClassAllocator<canopen::IoBase> io_base_allocator_;
+  boost::shared_ptr< LayerGroupNoDiag<IoBase> > io_bases_;
+  boost::shared_ptr<LayerGroupNoDiag<LedLayer> > led_layers_;
 
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger)
     {
       std::string name = params["name"];
       std::string &channel = name;
-        //if(params.hasMember("channel")) joint.assign(params["channel"]);
+      ROS_INFO("adding node %s", name.c_str());
+      
 
-        std::string alloc_name = "canopen::LedBase::Allocator";
+        std::string alloc_name = "canopen::IO401::Allocator";
         if(params.hasMember("led_allocator")) alloc_name.assign(params["led_allocator"]);
 
         XmlRpcSettings settings;
         if(params.hasMember("led_layer")) settings = params["led_layer"];
 
-        boost::shared_ptr<LedBase> led;
+	boost::shared_ptr<IoBase> io_base;
 
         try{
-            led = led_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
+            io_base = io_base_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
         }
         catch( const std::exception &e){
             std::string info = boost::diagnostic_information(e);
             ROS_ERROR_STREAM(info);
+	    ROS_ERROR_STREAM(">>>>>>>>> Failed led allocator");
             return false;
         }
 
-        if(!led){
+        if(!io_base){
             ROS_ERROR_STREAM("Could not allocate led.");
             return false;
         }
-
-        leds_->add(led);
-        logger->add(led);
+        io_bases_->add(io_base);
+	
+	boost::shared_ptr<LedLayer> layer( new LedLayer(this->nh_,name, io_base, node->getStorage(), params));
+        led_layers_->add(layer);
+        logger->add(layer);
 
         return true;
     }
 
 
 public:
-    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), led_allocator_("led", "canopen::LedBase::Allocator"){}
+    LedChain(const ros::NodeHandle &nh, const ros::NodeHandle &nh_priv): RosChain(nh, nh_priv), io_base_allocator_("canopen_401", "canopen::IoBase::Allocator"){}
 
     virtual bool setup() {
-        //led_layer_.reset( new LedLayer());
-        leds_.reset( new LayerGroupNoDiag<LedBase>("Led Layer"));
+        ROS_INFO("resetting layers");
+        led_layers_.reset( new LayerGroupNoDiag<LedLayer>("LedLayers"));
+        io_bases_.reset( new LayerGroupNoDiag<IoBase>("IoBases"));
 
 
         if(RosChain::setup()){
-            //add(led_layer_);
-            add(leds_);
+            ROS_INFO("adding");
+            add(led_layers_);      
+            add(io_bases_);
 
             return true;
         }
-
+        ROS_ERROR_STREAM("Failed RosChain setup");
         return false;
     }
 
@@ -98,8 +104,9 @@ int main(int argc, char** argv){
   ros::NodeHandle nh;
   ros::NodeHandle nh_priv("~");
 
+  ROS_INFO("init chain");
   LedChain chain(nh, nh_priv);
-
+  ROS_INFO("setting up chain");
   if(!chain.setup()){
       return -1;
   }

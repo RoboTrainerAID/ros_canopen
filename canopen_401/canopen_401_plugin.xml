@@ -1,0 +1,5 @@
+<library path="lib/libcanopen_401_plugin">
+  <class type="canopen::IO401::Allocator" base_class_type="canopen::IoBase::Allocator">
+    <description>Allocator for IO401 instances</description>
+  </class>
+</library>
