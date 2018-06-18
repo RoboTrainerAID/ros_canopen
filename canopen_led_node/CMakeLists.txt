@@ -167,11 +167,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 
-add_executable(send_led_test test/src/send_led_test.cpp)
-target_link_libraries(send_led_test ${catkin_LIBRARIES})
-add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS})
+#add_executable(send_led_test test/src/send_led_test.cpp)
+#target_link_libraries(send_led_test ${catkin_LIBRARIES})
+#add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS})
 
-add_executable(send test/src/send_script.cpp)
-target_link_libraries(send ${catkin_LIBRARIES})
-add_dependencies(send ${catkin_EXPORTED_TARGETS})
+#add_executable(send test/src/send_script.cpp)
+#target_link_libraries(send ${catkin_LIBRARIES})
+#add_dependencies(send ${catkin_EXPORTED_TARGETS})
 
