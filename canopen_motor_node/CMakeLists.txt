@@ -13,7 +13,7 @@ find_package(catkin REQUIRED
     joint_limits_interface
     joint_limits_interface
     urdf
-    ati_force_torque
+    force_torque_sensor
     force_controllers
 )
 
