@@ -25,7 +25,7 @@
   <depend>joint_limits_interface</depend>
   <depend>muparser</depend>
   <depend>urdf</depend>
-  <depend>ati_force_torque</depend>
+  <depend>force_torque_sensor</depend>
   <depend>force_controllers</depend>
 
 </package>
