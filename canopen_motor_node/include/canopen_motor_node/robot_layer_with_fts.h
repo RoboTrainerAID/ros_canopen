@@ -1,6 +1,6 @@
 #include <force_controllers/force_controller.h>
 
-#include <ati_force_torque/force_torque_sensor_handle.h>
+#include <force_torque_sensor/force_torque_sensor_handle.h>
 
 #include <canopen_motor_node/robot_layer.h>
 
