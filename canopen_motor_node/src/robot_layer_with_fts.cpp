@@ -7,7 +7,7 @@ RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
     nh.param<std::string>("FTS/fts_name", fts_name, "FTS");
     nh.param<std::string>("Node/transform_frame", fts_transform_frame, "fts_transform_frame");
 
-    registerInterface(&ft_interface_);
+    registerInterface(&fts_interface_);
 }
 
 void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
