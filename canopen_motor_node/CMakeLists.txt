@@ -10,7 +10,6 @@ find_package(catkin REQUIRED
     controller_manager_msgs
     control_toolbox
     filters
-    ati_force_torque
     hardware_interface
     joint_limits_interface
     roscpp
@@ -69,7 +68,6 @@ catkin_package(
     canopen_motor
   CATKIN_DEPENDS
     canopen_402
-    ati_force_torque
     canopen_chain_node
     canopen_master
     controller_manager
