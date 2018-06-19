@@ -7,6 +7,7 @@
 #include <canopen_chain_node/ros_chain.h>
 
 #include <canopen_motor_node/robot_layer.h>
+#include <canopen_motor_node/robot_layer_with_fts.h>
 #include <canopen_motor_node/controller_manager_layer.h>
 
 

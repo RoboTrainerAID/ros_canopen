@@ -25,6 +25,8 @@
   <depend>muparser</depend>
   <depend>roscpp</depend>
   <depend>urdf</depend>
+  <depend>force_torque_sensor</depend>
+  <depend>force_controllers</depend>
 
   <build_depend>controller_manager_msgs</build_depend>
   <exec_depend>controller_manager_msgs</exec_depend>

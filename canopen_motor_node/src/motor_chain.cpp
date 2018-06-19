@@ -81,7 +81,12 @@ bool MotorChain::nodeAdded(XmlRpc::XmlRpcValue &params, const canopen::NodeShare
 
 bool MotorChain::setup_chain() {
     motors_.reset(new LayerGroupNoDiag<MotorBase>("402 Layer"));
-    robot_layer_.reset(new RobotLayer(nh_));
+    // TODO: Remove absolute parameter
+    if(nh_.param("/arm/driver/use_fts", false)){
+            robot_layer_.reset( new RobotLayerWithFTS(nh_));
+        }else{
+            robot_layer_.reset( new RobotLayer(nh_));
+        }
 
     ros::Duration dur(0.0) ;
 
