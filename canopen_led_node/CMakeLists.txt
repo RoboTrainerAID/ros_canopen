@@ -123,28 +123,14 @@ include_directories(
 
 ## Declare a C++ library
 
-
-
- 
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(can_led_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Declare a C++ executable
- add_executable(canopen_led_node
-   src/canopen_led_layer.cpp
-   src/led_chain_node.cpp
- )
-
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(can_led_node_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Specify libraries to link a library or executable target against
+add_executable(canopen_led_node
+  src/canopen_led_layer.cpp
+  src/led_chain_node.cpp
+)
 target_link_libraries(canopen_led_node
   ${catkin_LIBRARIES}
 ) 
+add_dependencies(can_led_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 #############
 ## Install ##
@@ -167,11 +153,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 
-#add_executable(send_led_test test/src/send_led_test.cpp)
-#target_link_libraries(send_led_test ${catkin_LIBRARIES})
-#add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS})
+add_executable(send_led_test test/src/send_led_test.cpp)
+target_link_libraries(send_led_test ${catkin_LIBRARIES})
+add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp))
 
-#add_executable(send test/src/send_script.cpp)
-#target_link_libraries(send ${catkin_LIBRARIES})
-#add_dependencies(send ${catkin_EXPORTED_TARGETS})
+add_executable(send test/src/send_script.cpp)
+target_link_libraries(send ${catkin_LIBRARIES})
+add_dependencies(send ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp))
 
