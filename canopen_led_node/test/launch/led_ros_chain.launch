@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find canopen_chain_node)/launch/chain.launch">  
+    <arg name="yaml" value="$(find canopen_led_node)/test/config/can1.yaml"/>
+  </include>
+  
+</launch> 

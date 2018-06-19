@@ -1,0 +1,1 @@
+uint16[] data 	#values according to group/bank/led config
