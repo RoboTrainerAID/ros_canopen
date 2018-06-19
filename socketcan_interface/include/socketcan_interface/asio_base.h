@@ -16,20 +16,24 @@ template<typename Socket> class AsioDriver : public DriverInterface{
     typedef SimpleDispatcher<StateInterface::StateListener> StateDispatcher;
     FrameDispatcher frame_dispatcher_;
     StateDispatcher state_dispatcher_;
-  
+
     State state_;
     boost::mutex state_mutex_;
     boost::mutex socket_mutex_;
-    
+
 protected:
     boost::asio::io_service io_service_;
+#if BOOST_ASIO_VERSION >= 101200 // Boost 1.66+
+    boost::asio::io_context::strand strand_;
+#else
     boost::asio::strand strand_;
+#endif
     Socket socket_;
     Frame input_;
-    
+
     virtual void triggerReadSome() = 0;
     virtual bool enqueue(const Frame & msg) = 0;
-    
+
     void dispatchFrame(const Frame &msg){
         strand_.post(boost::bind(&FrameDispatcher::dispatch, &frame_dispatcher_, msg)); // copies msg
     }
@@ -58,7 +62,7 @@ protected:
     void setNotReady(){
         setDriverState(socket_.is_open()?State::open : State::closed);
     }
-    
+
     void frameReceived(const boost::system::error_code& error){
         if(!error){
             dispatchFrame(input_);
@@ -75,35 +79,35 @@ protected:
 
 public:
     virtual ~AsioDriver() { shutdown(); }
-    
+
     State getState(){
         boost::mutex::scoped_lock lock(state_mutex_);
         return state_;
     }
     virtual void run(){
         setNotReady();
-        
+
         if(getState().driver_state == State::open){
             io_service_.reset();
             boost::asio::io_service::work work(io_service_);
             setDriverState(State::ready);
 
             boost::thread post_thread(boost::bind(&boost::asio::io_service::run, &io_service_));
-            
+
             triggerReadSome();
-            
+
             boost::system::error_code ec;
             io_service_.run(ec);
             setErrorCode(ec);
-            
+
             setNotReady();
-        }   
+        }
         state_dispatcher_.dispatch(getState());
     }
     virtual bool send(const Frame & msg){
         return getState().driver_state == State::ready && enqueue(msg);
     }
-    
+
     virtual void shutdown(){
         if(socket_.is_open()){
             socket_.cancel();
@@ -111,14 +115,14 @@ public:
         }
         io_service_.stop();
     }
-    
-    virtual FrameListener::Ptr createMsgListener(const FrameDelegate &delegate){
+
+    virtual FrameListenerConstSharedPtr createMsgListener(const FrameDelegate &delegate){
         return frame_dispatcher_.createListener(delegate);
     }
-    virtual FrameListener::Ptr createMsgListener(const Frame::Header&h , const FrameDelegate &delegate){
+    virtual FrameListenerConstSharedPtr createMsgListener(const Frame::Header&h , const FrameDelegate &delegate){
         return frame_dispatcher_.createListener(h, delegate);
     }
-    virtual StateListener::Ptr createStateListener(const StateDelegate &delegate){
+    virtual StateListenerConstSharedPtr createStateListener(const StateDelegate &delegate){
         return state_dispatcher_.createListener(delegate);
     }
 

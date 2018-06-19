@@ -25,6 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <socketcan_bridge/topic_to_socketcan.h>
+#include <socketcan_bridge/socketcan_to_topic.h>
 
 #include <can_msgs/Frame.h>
 #include <socketcan_interface/socketcan.h>
@@ -52,7 +53,7 @@ TEST(TopicToSocketCANTest, checkCorrectData)
   ros::NodeHandle nh(""), nh_param("~");
 
   // create the dummy interface
-  boost::shared_ptr<can::DummyInterface> driver_ = boost::make_shared<can::DummyInterface>(true);
+  can::DummyInterfaceSharedPtr driver_ = boost::make_shared<can::DummyInterface>(true);
 
   // start the to topic bridge.
   socketcan_bridge::TopicToSocketCAN to_socketcan_bridge(&nh, &nh_param, driver_);
@@ -68,7 +69,7 @@ TEST(TopicToSocketCANTest, checkCorrectData)
   frameCollector frame_collector_;
 
   //  driver->createMsgListener(&frameCallback);
-  can::CommInterface::FrameListener::Ptr frame_listener_ = driver_->createMsgListener(
+  can::FrameListenerConstSharedPtr frame_listener_ = driver_->createMsgListener(
             can::CommInterface::FrameDelegate(&frame_collector_, &frameCollector::frameCallback));
 
   // create a message
@@ -93,8 +94,10 @@ TEST(TopicToSocketCANTest, checkCorrectData)
   ros::WallDuration(1.0).sleep();
   ros::spinOnce();
 
-  can::Frame received;
-  received = frame_collector_.frames.back();
+  can_msgs::Frame received;
+  can::Frame f = frame_collector_.frames.back();
+  socketcan_bridge::convertSocketCANToMessage(f, received);
+
   EXPECT_EQ(received.id, msg.id);
   EXPECT_EQ(received.dlc, msg.dlc);
   EXPECT_EQ(received.is_extended, msg.is_extended);
@@ -114,7 +117,7 @@ TEST(TopicToSocketCANTest, checkInvalidFrameHandling)
   ros::NodeHandle nh(""), nh_param("~");
 
   // create the dummy interface
-  boost::shared_ptr<can::DummyInterface> driver_ = boost::make_shared<can::DummyInterface>(true);
+  can::DummyInterfaceSharedPtr driver_ = boost::make_shared<can::DummyInterface>(true);
 
   // start the to topic bridge.
   socketcan_bridge::TopicToSocketCAN to_socketcan_bridge(&nh, &nh_param, driver_);
@@ -127,7 +130,7 @@ TEST(TopicToSocketCANTest, checkInvalidFrameHandling)
   frameCollector frame_collector_;
 
   //  add callback to the dummy interface.
-  can::CommInterface::FrameListener::Ptr frame_listener_ = driver_->createMsgListener(
+  can::FrameListenerConstSharedPtr frame_listener_ = driver_->createMsgListener(
           can::CommInterface::FrameDelegate(&frame_collector_, &frameCollector::frameCallback));
 
   // create a message
