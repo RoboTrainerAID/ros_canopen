@@ -10,6 +10,7 @@ using namespace canopen;
 class RobotLayerWithFTS : public RobotLayer
 {
     force_torque_control::ForceTorqueControllerInterface fts_interface_;
+    force_torque_control::ForceTorqueControllerHandle controller_handle_;
     force_torque_sensor::ForceTorqueSensorHandle* ftsh_;
     ros::NodeHandle nh_;
 
