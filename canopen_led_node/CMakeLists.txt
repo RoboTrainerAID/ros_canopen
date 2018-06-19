@@ -155,9 +155,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 add_executable(send_led_test test/src/send_led_test.cpp)
 target_link_libraries(send_led_test ${catkin_LIBRARIES})
-add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp))
+add_dependencies(send_led_test ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(send test/src/send_script.cpp)
 target_link_libraries(send ${catkin_LIBRARIES})
-add_dependencies(send ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp))
+add_dependencies(send ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
