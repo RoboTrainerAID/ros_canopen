@@ -1,4 +1,3 @@
-
 #include <canopen_motor_node/motor_chain.h>
 #include <canopen_motor_node/handle_layer.h>
 
@@ -80,14 +79,11 @@ bool MotorChain::nodeAdded(XmlRpc::XmlRpcValue &params, const canopen::NodeShare
 }
 
 bool MotorChain::setup_chain() {
+    bool use_fts=false;
     motors_.reset(new LayerGroupNoDiag<MotorBase>("402 Layer"));
-    // TODO: Remove absolute parameter
-    if(nh_.param("/arm/driver/use_fts", false)){
-            robot_layer_.reset( new RobotLayerWithFTS(nh_));
-        }else{
-            robot_layer_.reset( new RobotLayer(nh_));
-        }
-
+    nh_priv_.param<bool>("use_fts", use_fts, false);
+    if(use_fts) robot_layer_.reset(new RobotLayerWithFTS(nh_));
+    else robot_layer_.reset(new RobotLayer(nh_));
     ros::Duration dur(0.0) ;
 
     if(RosChain::setup_chain()){
