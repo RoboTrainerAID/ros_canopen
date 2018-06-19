@@ -1,25 +1,12 @@
-bus:
-  device: can0 # socketcan network
-  # loopback: false # socket should loop back messages
-  # driver_plugin: can::SocketCANInterface
-  master_allocator: canopen::SimpleMaster::Allocator # defaults to canopen::LocalMaster::Allocator
-sync:
-  interval_ms: 10 # set to 0 to disable sync
-  # update_ms: <interval_ms> #update interval of control loop, must be set explecitly if sync is disabled
-  overflow: 0 # overflow sync counter at value or do not set it (0, default)
-heartbeat: # simple heartbeat producer
-  rate: 20 # heartbeat rate
-  msg: "77f#05" # message to send, cansend format: heartbeat of node 127 with status 5=Started
-
 # hardware_id: none # used for diagnostics
 
 defaults: # optional, all defaults can be overwritten per node
   ### 301
   eds_pkg: canopen_led_node # optionals package  name for relative path
-  #eds_file: "test/config/led.eds" # path to EDS/DCF file
-  eds_file: "test/config/Led.dcf" # path to EDS/DCF file
+  eds_file: "test/config/led.eds" # path to EDS/DCF file
+  #eds_file: "test/config/Led.dcf" # path to EDS/DCF file
   #dcf_overlay: # "ObjectID": "ParameterValue" (both as strings)
-    #"1018sub4" : "8923"
+   # "1016sub1" : "8923"
     #"1016sub1" : "0x7F0064" # heartbeat timeout of 100 ms for master at 127
     #"1017": "100" # heartbeat producer
   ### 402
@@ -28,13 +15,26 @@ defaults: # optional, all defaults can be overwritten per node
   #   switching_state: 5 # (Operation_Enable), state for mode switching
   #   monitor_mode: true # read operation mode in every cycle
   ### ROS:
-  #publish: ["6411sub1"] # list of objects to be published (one topic per node and entry), ! diables caching and forces read from device
+  # Publish -> Global LED Array Enable: rw: default 1 && Global Brightness: rw: default 0
+  #publish: ["2007"] # list of objects to be published (one topic per node and entry), ! disables caching and forces read from device
 
 
 nodes:
-  led_rig1:
+  led_alpha:
     ### node settings
     id: 2 # node id
     # name: must be set for array-styled format, defaults to entry name
     # joint: <name> # set motor joint name
+    ### EDS file
+    eds_file: "test/config/led.eds" # path to EDS/DCF file
+    #eds_file: "test/config/Led.dcf" 
+    ### LED Channels
+    use_401: false
+    leds: 60 # number of leds (1 LED per color channel (RGB))
+    ### Banks
+    banks: 4 # number of banks
+    bank_size: 15 # size of one bank
+    ### Groups 
+    groups: 2 # groups
     ### defaults will be merged recursively (only structs), node settings have precedence
+    step: 100 # stepwidth to push ledUpdates to bus in ms
