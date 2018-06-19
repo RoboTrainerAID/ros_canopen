@@ -12,11 +12,10 @@
 #include <canopen_402/base.h>
 #include <canopen_motor_node/handle_layer_base.h>
 
-
-
 namespace canopen {
 
 class RobotLayer : public LayerGroupNoDiag<HandleLayerBase>, public hardware_interface::RobotHW{
+protected:
     hardware_interface::JointStateInterface state_interface_;
     hardware_interface::PositionJointInterface pos_interface_;
     hardware_interface::VelocityJointInterface vel_interface_;

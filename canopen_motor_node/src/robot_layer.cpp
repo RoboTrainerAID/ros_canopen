@@ -11,7 +11,6 @@
 
 using namespace canopen;
 
-
 InterfaceMapping g_interface_mapping;
 
 void RobotLayer::stopControllers(const std::vector<std::string> controllers){
@@ -102,7 +101,6 @@ public:
         return false;
     }
 };
-
 bool RobotLayer::prepareSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list) {
     // compile-time check for mode switching support in ros_control
     (void) &hardware_interface::RobotHW::prepareSwitch; // please upgrade to ros_control/contoller_manager 0.9.4 or newer
@@ -153,10 +151,10 @@ bool RobotLayer::prepareSwitch(const std::list<hardware_interface::ControllerInf
                         return false;
                     }
 
-                    if(g_interface_mapping.hasConflict(cres_it->hardware_interface, sd.mode)){
-                        ROS_ERROR_STREAM(cres_it->hardware_interface << " cannot be provided in mode " << sd.mode);
-                        return false;
-                    }
+//                     if(g_interface_mapping.hasConflict(cres_it->hardware_interface, sd.mode)){
+//                         ROS_ERROR_STREAM(cres_it->hardware_interface << " cannot be provided in mode " << sd.mode);
+//                         return false;
+//                     }
 
                     HandleLayerBase::CanSwitchResult res = h_it->second->canSwitch(sd.mode);
 

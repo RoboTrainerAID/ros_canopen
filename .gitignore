@@ -23,3 +23,10 @@ srv_gen
 *Result.msg
 *Result.py
 *.pyc
+
+
+# eclipse
+.cproject
+.project
+.settings/language.settings.xml
+Debug/
