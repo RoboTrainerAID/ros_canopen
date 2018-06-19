@@ -2,11 +2,8 @@
 #define CANOPEN_MOTOR_NODE_ROBOT_LAYER_WITH_FTS_H_
 
 #include <force_controllers/force_controller.h>
-
 #include <force_torque_sensor/force_torque_sensor_handle.h>
-
 #include <canopen_motor_node/robot_layer.h>
-
 
 using namespace canopen;
 
@@ -25,4 +22,5 @@ public:
 
     virtual void handleInit(canopen::LayerStatus &status);
 };
-}
+
+#endif
