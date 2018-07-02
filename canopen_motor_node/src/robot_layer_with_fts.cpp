@@ -1,5 +1,4 @@
 #include <canopen_motor_node/robot_layer_with_fts.h>
-#include <canopen_motor_node/robot_layer.h>
 
 using namespace canopen;
 RobotLayerWithFTS::RobotLayerWithFTS(ros::NodeHandle nh) : RobotLayer(nh)
@@ -18,5 +17,14 @@ void RobotLayerWithFTS::handleInit(canopen::LayerStatus &status){
     ftsh_ = new force_torque_sensor::ForceTorqueSensorHandle(nh_, fts_name, fts_transform_frame);
     
     handle.addHandle(*ftsh_);
+
+    std::vector<std::string> vel_names = vel_interface_.getNames();
+    for(size_t i = 0; i < vel_names.size(); i ++)
+        handle.addVelHandle(vel_interface_.getHandle(vel_names[i]));
+
+    std::vector<std::string> pos_names = pos_interface_.getNames();
+    for(size_t i = 0; i < pos_names.size(); i ++)
+        handle.addPosHandle(pos_interface_.getHandle(pos_names[i]));
+
     fts_interface_.registerHandle(handle);
 }
