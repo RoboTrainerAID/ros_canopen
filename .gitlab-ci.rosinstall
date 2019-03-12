@@ -21,4 +21,4 @@
 - git:
     local-name: ros_control
     uri: https://github.com/KITrobotics/ros_control.git
-    version: recover_stop_robot_hw   
+    version: kinetic-stop-recover   
