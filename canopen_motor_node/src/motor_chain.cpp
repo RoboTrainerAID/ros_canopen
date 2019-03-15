@@ -64,7 +64,7 @@ bool MotorChain::nodeAdded(XmlRpc::XmlRpcValue &params, const canopen::NodeShare
     motors_->add(motor);
     logger->add(motor);
 
-    boost::shared_ptr<HandleLayer> handle( new HandleLayer(joint, motor, node->getStorage(), params));
+    HandleLayerSharedPtr handle = std::make_shared<HandleLayer>(joint, motor, node->getStorage(), params);
 
     canopen::LayerStatus s;
     if(!handle->prepareFilters(s)){
@@ -104,4 +104,3 @@ bool MotorChain::setup_chain() {
 
     return false;
 }
-

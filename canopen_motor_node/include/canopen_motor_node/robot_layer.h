@@ -2,7 +2,8 @@
 #ifndef CANOPEN_MOTOR_NODE_ROBOT_LAYER_H_
 #define CANOPEN_MOTOR_NODE_ROBOT_LAYER_H_
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/joint_state_interface.h>
 #include <joint_limits_interface/joint_limits_interface.h>
@@ -32,7 +33,7 @@ private:
     ros::NodeHandle nh_;
     urdf::Model urdf_;
 
-    typedef boost::unordered_map< std::string, HandleLayerBaseSharedPtr > HandleMap;
+    typedef std::unordered_map< std::string, HandleLayerBaseSharedPtr > HandleMap;
     HandleMap handles_;
     struct SwitchData {
         HandleLayerBaseSharedPtr handle;
@@ -40,10 +41,10 @@ private:
         bool enforce_limits;
     };
     typedef std::vector<SwitchData>  SwitchContainer;
-    typedef boost::unordered_map<std::string, SwitchContainer>  SwitchMap;
+    typedef std::unordered_map<std::string, SwitchContainer>  SwitchMap;
     SwitchMap switch_map_;
 
-    boost::atomic<bool> first_init_;
+    std::atomic<bool> first_init_;
 
     void stopControllers(const std::vector<std::string> controllers);
 public:
@@ -57,7 +58,7 @@ public:
     virtual void doSwitch(const std::list<hardware_interface::ControllerInfo> &start_list, const std::list<hardware_interface::ControllerInfo> &stop_list);
 };
 
-typedef boost::shared_ptr<RobotLayer> RobotLayerSharedPtr;
+typedef std::shared_ptr<RobotLayer> RobotLayerSharedPtr;
 
 }  // namespace canopen
 

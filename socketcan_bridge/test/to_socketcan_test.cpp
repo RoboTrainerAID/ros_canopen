@@ -53,7 +53,7 @@ TEST(TopicToSocketCANTest, checkCorrectData)
   ros::NodeHandle nh(""), nh_param("~");
 
   // create the dummy interface
-  can::DummyInterfaceSharedPtr driver_ = boost::make_shared<can::DummyInterface>(true);
+  can::DummyInterfaceSharedPtr driver_ = std::make_shared<can::DummyInterface>(true);
 
   // start the to topic bridge.
   socketcan_bridge::TopicToSocketCAN to_socketcan_bridge(&nh, &nh_param, driver_);
@@ -117,7 +117,7 @@ TEST(TopicToSocketCANTest, checkInvalidFrameHandling)
   ros::NodeHandle nh(""), nh_param("~");
 
   // create the dummy interface
-  can::DummyInterfaceSharedPtr driver_ = boost::make_shared<can::DummyInterface>(true);
+  can::DummyInterfaceSharedPtr driver_ = std::make_shared<can::DummyInterface>(true);
 
   // start the to topic bridge.
   socketcan_bridge::TopicToSocketCAN to_socketcan_bridge(&nh, &nh_param, driver_);
@@ -171,6 +171,7 @@ TEST(TopicToSocketCANTest, checkInvalidFrameHandling)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "test_to_topic");
+  ros::NodeHandle nh;
   ros::WallDuration(1.0).sleep();
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
