@@ -16,7 +16,7 @@
 - git:
     local-name: iirob_ik
     uri: https://gitlab.ipr.kit.edu/IIROB/iirob_ik.git
-    version: kinetic-devel
+    version: melodic-devel
     
 - git:
     local-name: ros_control
