@@ -131,8 +131,8 @@ void LedLayer::globalLedArrayEnable(const std_msgs::Bool::ConstPtr& msg) {
 }
 
 LedLayer::LedLayer(ros::NodeHandle nh, const std::string &name,
-		const boost::shared_ptr<IoBase> & base,
-		const boost::shared_ptr<ObjectStorage> storage,
+		const std::shared_ptr<IoBase> & base,
+		const std::shared_ptr<ObjectStorage> storage,
 		XmlRpc::XmlRpcValue & options) :
 		Layer(name + " Handle"), base_(base), storage_(storage), nh_(nh) {
 	

@@ -30,8 +30,8 @@ private:
 
 class LedChain : public RosChain{
   ClassAllocator<canopen::IoBase> io_base_allocator_;
-  boost::shared_ptr< LayerGroupNoDiag<IoBase> > io_bases_;
-  boost::shared_ptr<LayerGroupNoDiag<LedLayer> > led_layers_;
+  std::shared_ptr< LayerGroupNoDiag<IoBase> > io_bases_;
+  std::shared_ptr<LayerGroupNoDiag<LedLayer> > led_layers_;
 
     virtual bool nodeAdded(XmlRpc::XmlRpcValue &params, const boost::shared_ptr<canopen::Node> &node, const boost::shared_ptr<Logger> &logger)
     {
@@ -46,7 +46,7 @@ class LedChain : public RosChain{
         XmlRpcSettings settings;
         if(params.hasMember("led_layer")) settings = params["led_layer"];
 
-	boost::shared_ptr<IoBase> io_base;
+	std::shared_ptr<IoBase> io_base;
 
         try{
             io_base = io_base_allocator_.allocateInstance(alloc_name, name + "_led", node->getStorage(), settings);
@@ -64,7 +64,7 @@ class LedChain : public RosChain{
         }
         io_bases_->add(io_base);
 	
-	boost::shared_ptr<LedLayer> layer( new LedLayer(this->nh_,name, io_base, node->getStorage(), params));
+	std::shared_ptr<LedLayer> layer( new LedLayer(this->nh_,name, io_base, node->getStorage(), params));
         led_layers_->add(layer);
         logger->add(layer);
 

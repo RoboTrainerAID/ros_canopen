@@ -305,8 +305,8 @@ private:
 class LedLayer: public canopen::Layer {
 
 	ros::NodeHandle nh_;
-	boost::shared_ptr<canopen::IoBase> base_;
-	const boost::shared_ptr<ObjectStorage> storage_;
+	std::shared_ptr<canopen::IoBase> base_;
+	const std::shared_ptr<ObjectStorage> storage_;
 	canopen::LedState *ledState_;
 
 	uint16_t leds_, banks_, bank_size_, groups_;
@@ -385,8 +385,8 @@ public:
 		return true;
 	}
 	LedLayer(ros::NodeHandle nh, const std::string &name,
-			const boost::shared_ptr<IoBase> & base,
-			const boost::shared_ptr<canopen::ObjectStorage> storage,
+			const std::shared_ptr<IoBase> & base,
+			const std::shared_ptr<canopen::ObjectStorage> storage,
 			XmlRpc::XmlRpcValue & options);
 
 };
