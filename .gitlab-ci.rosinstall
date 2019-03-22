@@ -11,14 +11,30 @@
 - git:
     local-name: iirob_controllers
     uri: https://gitlab.ipr.kit.edu/IIROB/iirob_controllers.git
-    version: kinetic-devel
+    version: melodic-devel
 
 - git:
     local-name: iirob_ik
     uri: https://gitlab.ipr.kit.edu/IIROB/iirob_ik.git
-    version: kinetic-devel
+    version: melodic-devel
     
 - git:
     local-name: ros_control
     uri: https://github.com/KITrobotics/ros_control.git
     version: kinetic-stop-recover   
+    
+- git:
+    local-name: cob_control
+    uri: https://github.com/iirob/cob_control.git
+    version: towards_melodic
+    
+- git:
+    local-name: force_torque_sensor
+    uri: https://github.com/KITrobotics/force_torque_sensor.git
+    version: kinetic-devel
+    
+- git:
+    local-name: rosparam_handler
+    uri: https://github.com/cbandera/rosparam_handler.git
+    version: master
+    

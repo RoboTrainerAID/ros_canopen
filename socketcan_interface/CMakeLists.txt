@@ -15,12 +15,6 @@ find_package(Boost REQUIRED
 
 find_package(Threads REQUIRED)
 
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" Cpp11CompilerFlag)
-if (Cpp11CompilerFlag)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
-
 catkin_package(
   INCLUDE_DIRS
     include
