@@ -55,7 +55,7 @@ public:
 		return true;
 	}
 
-	IO401(const std::string &name, boost::shared_ptr<ObjectStorage> storage,
+	IO401(const std::string &name, std::shared_ptr<ObjectStorage> storage,
 			const canopen::Settings &settings) :
 			IoBase(name), storage_(storage) {
 
@@ -179,15 +179,15 @@ public:
 
 	class Allocator: public IoBase::Allocator {
 	public:
-		virtual boost::shared_ptr<IoBase> allocate(const std::string &name,
-				boost::shared_ptr<ObjectStorage> storage,
+		virtual std::shared_ptr<IoBase> allocate(const std::string &name,
+				std::shared_ptr<ObjectStorage> storage,
 				const canopen::Settings &settings);
 
 	};
 
 private:
 
-	boost::shared_ptr<ObjectStorage> storage_;
+	std::shared_ptr<ObjectStorage> storage_;
 	bool use_401_;
 	ros::Subscriber writeDigitalOut8_sub_, writeAnalogOut16_sub_;
 

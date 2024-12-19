@@ -17,9 +17,9 @@ public:
 
 	class Allocator {
 	public:
-		virtual boost::shared_ptr<IoBase> allocate(const std::string &name,
-				boost::shared_ptr<ObjectStorage> storage,
-				const canopen::Settings &settings) = 0;
+        virtual std::shared_ptr<IoBase> allocate(const std::string &name,
+        std::shared_ptr<ObjectStorage> storage,
+        const canopen::Settings &settings) = 0;
 		virtual ~Allocator() { }
 	};
 };
